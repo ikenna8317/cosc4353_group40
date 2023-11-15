@@ -1,0 +1,7 @@
+node_modules/
+.env
+.vscode
+public/images
+old/
+.deployment
+app-trim.txt
