@@ -1,0 +1,136 @@
+.bg-img-1 {
+    background-image: url('https://img.texasmonthly.com/2023/07/texasland.jpg?auto=compress&crop=faces&fit=fit&fm=jpg&h=0&ixlib=php-3.3.1&q=45&w=1250');
+}
+
+.bg-img-2 {
+    background-image: url('https://assets.simpleviewinc.com/simpleview/image/upload/c_limit,h_1200,q_75,w_1200/v1/clients/anaheimca/0910ZR_0029CR_R3_RTD_51578b3c-f4b9-4b12-916b-56591be853d7.jpg');
+}
+
+.bg-img-3 {
+    background-image: url('https://www.wdw-magazine.com/wp-content/uploads/2023/07/090121_Disneyland_Town-Square_Mickey-Mouse-Pumpkin_Dom-Tabon-scaled.webp');
+}
+
+.carousel-image {
+    filter: brightness(50%);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 100vh;
+}
+
+.navigation-bar{
+    animation-duration: 1s;
+    animation-name: fadeDown;
+}
+
+.page-title{
+    text-align: center;
+    color: white;
+    top: 450px;
+    animation-duration: 1s;
+    animation-name: fadeUp;
+    font-family: 'Lobster', sans-serif;
+}
+h1{
+    font-size: 5rem;
+}
+
+a{
+    text-decoration: none;
+    color: white;
+}
+.signin-sheet{
+    display: inline-block;
+    position: relative;
+    top: 200px;
+    background-color: rgb(57, 54, 54);
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+    border-radius: 5%;
+    text-shadow: 2px 2px 5px rgb(36, 36, 36);
+    box-shadow: 5px 5px 5px rgb(35, 35, 35);
+    animation-duration: 1s;
+    animation-name: fadeDown;
+}
+.pricing-header{
+    animation-duration: 1s;
+    animation-name: fadeDown;
+}
+.free-card{
+    animation-delay: 0.5s;
+    animation-duration: 1s;
+    animation-name: zoom-in-zoom-out;
+    
+}
+.pro-card{
+    
+    animation-delay: 0.75s;
+    animation-duration: 1s;
+    animation-name: zoom-in-zoom-out;
+}
+.enterprise-card{
+    animation-delay: 1s;
+    animation-duration: 1s;
+    animation-name: zoom-in-zoom-out;
+}
+li :hover{
+    text-shadow: 2px 2px 5px black;
+}
+.refund{
+    animation-duration: 1s;
+    animation-name: fadeDown;
+}
+.pricingfooter{
+    animation-duration: 1s;
+    animation-name: fadeDown;
+}
+.card{
+    animation-duration: 1s;
+    animation-name: fadeDown;
+    
+}
+.card:hover{
+    animation-duration: 0.5s;
+    animation-name: zoom-in-zoom-out;
+}
+.carousel-caption{
+    animation-duration: 1s;
+    animation-name: fadeDown;
+}
+.wholeres{
+    animation-duration: 1s;
+    animation-name: fadeDown;
+}
+@keyframes fadeDown {
+    0% {
+       opacity: 0;
+       transform: translateY(-20px);
+    }
+    100% {
+       opacity: 1;
+       transform: translateY(0);
+    }
+ }
+ @keyframes fadeUp {
+    0% {
+       opacity: 0;
+       transform: translateY(30px);
+    }
+    100% {
+       opacity: 1;
+       transform: translateY(0);
+    }
+ }
+ @keyframes zoom-in-zoom-out {
+    0% {
+      transform: scale(1, 1);
+    }
+    50% {
+      transform: scale(1.2, 1.2);
+    }
+    100% {
+      transform: scale(1, 1);
+    }
+  }

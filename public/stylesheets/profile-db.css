@@ -1,0 +1,53 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+}
+
+.sidebar {
+    background-color: #EAEAEA;
+}
+
+.sidebar ul {
+    margin-top: 1.8rem;
+}
+/* .sidebar ul.list-group li */
+.sidebar ul.list-group li a, .a-link {
+    text-decoration: none;
+    color: #474747;
+}
+
+.menu-item {
+    /* border: 1px solid black; */
+    margin-bottom: 1.8rem;
+}
+
+.menu-item .add-link {
+    display: flex;
+    min-height: 10rem;
+    background-color: #A9A9A9;
+    text-decoration: none;
+    color: black;
+}
+
+.menu-item .add-link div {
+    margin: auto;
+}
+
+.menu-item h1, h1.title {
+    text-decoration: underline;
+}
+
+.details {
+    margin-bottom: 1rem;
+}
+
+.details h3 {
+    margin: 1.7rem 0;
+
+}
+/* 
+form {
+    display: flex;
+    flex-direction: column;
+    align-content: space-between;
+} */

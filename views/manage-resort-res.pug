@@ -1,0 +1,22 @@
+extends components/profile.pug 
+
+
+block main-grid
+    div
+        -if (reservation.hasReservation)
+            //- img(src="images/resort2.jpeg", alt="picture of resort canopies")
+            //-reservation.hasReservation
+            h1.title Manage resort reservation
+            p.fst-italic.
+                Note: In addition to your ticket, you may be asked to present a government identification such as a drivers license to verify your identity upon collecting your keycard
+            .details.mt-3 
+                h3 Ticket number*: #{tnumber}
+                h3 Name: #{name}
+                h3 Suite type: #{reservation.suiteType}
+                h3 Room number: #{reservation.roomNo}
+                h3 Duration of stay (in hours): #{reservation.durationInHours}
+            button.btn.btn-danger Remove reservation
+        -else
+            p You have no reservation yet.
+            a.a-link(href="/book-resort-reservation") Click here to book a reservation
+

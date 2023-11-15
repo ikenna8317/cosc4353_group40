@@ -1,0 +1,105 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.bg-img-1 {
+  background-image: url('https://media.disneylandparis.com/d4th/en-usd/images/HD13302_2_2050jan01_world_disneyland-park-dlp-website-visual_5-2_tcm1861-248638.jpg?w=1920&f=webp');
+}
+
+.bg-img-2 {
+  background-image: url('https://assets.simpleviewinc.com/simpleview/image/upload/c_limit,h_1200,q_75,w_1200/v1/clients/anaheimca/0910ZR_0029CR_R3_RTD_51578b3c-f4b9-4b12-916b-56591be853d7.jpg');
+}
+
+.bg-img-3 {
+  background-image: url('https://www.wdw-magazine.com/wp-content/uploads/2023/07/090121_Disneyland_Town-Square_Mickey-Mouse-Pumpkin_Dom-Tabon-scaled.webp');
+}
+
+.carousel-image {
+  filter: brightness(50%);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  height: 100vh;
+}
+
+.navigation-bar{
+  animation-duration: 1s;
+  animation-name: fadeDown;
+}
+
+.page-title{
+  text-align: center;
+  color: white;
+  top: 450px;
+  animation-duration: 1s;
+  animation-name: fadeUp;
+  font-family: 'Lobster', sans-serif;
+}
+h1{
+  font-size: 5rem;
+}
+
+a{
+  text-decoration: none;
+  color: white;
+}
+.signin-sheet{
+  display: inline-block;
+  position: relative;
+  top: 200px;
+  background-color: rgb(57, 54, 54);
+  padding-top: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+  border-radius: 5%;
+  text-shadow: 2px 2px 5px rgb(36, 36, 36);
+  box-shadow: 5px 5px 5px rgb(35, 35, 35);
+  animation-duration: 1s;
+  animation-name: fadeDown;
+}
+.pricing-header{
+  animation-duration: 1s;
+  animation-name: fadeDown;
+}
+.free-card{
+  animation-duration: 1s;
+  animation-name: fadeDown;
+}
+.pro-card{
+  animation-delay: 1s;
+  animation-duration: 1s;
+  animation-name: fadeDown;
+}
+.business-card{
+  animation-delay: 2s;
+  animation-duration: 1s;
+  animation-name: fadeDown;
+}
+
+
+@keyframes fadeDown {
+  0% {
+     opacity: 0;
+     transform: translateY(-20px);
+  }
+  100% {
+     opacity: 1;
+     transform: translateY(0);
+  }
+}
+@keyframes fadeUp {
+  0% {
+     opacity: 0;
+     transform: translateY(30px);
+  }
+  100% {
+     opacity: 1;
+     transform: translateY(0);
+  }
+}

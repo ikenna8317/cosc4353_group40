@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap 5 Sidebar</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        /* Sidebar Styling */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            padding: 48px 0;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar-item {
+            padding: 8px 16px;
+            border-bottom: 1px solid #dcdcdc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-3 sidebar">
+                <div class="sidebar-item">Dashboard</div>
+                <div class="sidebar-item">Messages</div>
+                <div class="sidebar-item">Settings</div>
+                <!-- Add more sidebar items -->
+            </div>
+            <div class="col-9">
+                <h1>Main Content</h1>
+                <p>This is where your main content goes.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Optional for some features) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
