@@ -1,6 +1,7 @@
 extends components/profile.pug 
 
 block main-grid
+    -var suitePrice = 65;
     h1.title Book hotel and resort reservation
     form#book-resort-reservation(action="#", method="post")
         .mb-3.mt-3 
@@ -8,7 +9,7 @@ block main-grid
             input.form-control#book-date(type="date", name="book-date")
         .mb-3 
             label.fw-bold.form-label Suite type:
-            .form-check 
+            .form-check
                 input#suite-choice-1.form-check-input(type="radio", name="suite-choice")
                 label.form-check-label(for="suite-choice-1") Basic ($35 per hour)
             .form-check 
@@ -37,5 +38,7 @@ block main-grid
             .form-check 
                 input#hours-choice-4.form-check-input(type="radio", name="hours-choice")
                 label.form-check-label(for="hours-choice-4") 24 
+        .mb-3
+            h4 Total (+ tax): #{suitePrice}
         button.btn.btn-primary Book
         

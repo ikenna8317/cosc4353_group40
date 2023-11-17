@@ -45,6 +45,14 @@
     margin: 1.7rem 0;
 
 }
+
+.ticket-field {
+    display: flex;
+}
+
+.ticket-field span {
+    margin-left: 0.8rem;
+}
 /* 
 form {
     display: flex;

@@ -1,12 +1,13 @@
-var dbConfig = {
-    user: 'root',
-    password: 'password@123',
-    server: 'novapark.database.windows.net',
-    database: 'novapark_2023-11-07T21-04Z'
-};
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-var authConfig = {
-    
+export const dbConfig = {
+    server: process.env.AZURE_SQL_SERVER,
+    // port: parseInt(process.env.AZURE_SQL_PORT),
+    database: process.env.AZURE_SQL_DATABASE,
+    user: process.env.AZURE_SQL_USER,
+    password: process.env.AZURE_SQL_PASSWORD,
+    options: {
+        encrypt: true
+    }
 };
-
-module.exports = dbConfig;

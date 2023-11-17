@@ -2,8 +2,8 @@ require('dotenv').config();
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-const session = require('express-session');
-const msal = require('@azure/msal-node');
+var session = require('express-session');
+var msal = require('@azure/msal-node');
 
 // var router = express.Router();
 
@@ -241,6 +241,14 @@ app.get('/manage-resort-reservation', isLoggedIn, function(req, res, next) {
   res.render('manage-resort-res', {email: req.session.user.email, reservation: req.session.user.resort_reservation});
 });
 
+// /manage-restaurant-reservation
+app.get('/manage-restaurant-reservation', isLoggedIn, function(req, res, next) {
+  res.render('manage-restaurant-res');
+});
+
+app.get('/refund-ticket', isLoggedIn, function(req, res, next) {
+  res.render('refund-ticket', {email: req.session.user.email, name: req.session.user.name, ticket: req.session.user.ticket});
+});
 
 // app.listen(process.env.SERVER_PORT, () => {
 //   console.log(`Msal Node Auth Code Sample app listening on port !` + process.env.SERVER_PORT);
