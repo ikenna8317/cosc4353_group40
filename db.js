@@ -1,12 +1,12 @@
-var sql = require('mssql');
+const sql = require('mssql');
 const dbc = require('./db-config.js');
 
-var pool = new sql.ConnectionPool(dbc.dbConfig);
+const pool = new sql.ConnectionPool(dbc.dbConfig);
 
 async function getTicketInfo() {
     try {
       await pool.connect();
-      var query = `SELECT v.first_name, v.last_name, v.ticket_no, t.t_type FROM novapark.visitor v INNER JOIN novapark.ticket t ON v.ticket_no = t.ticket_no WHERE v.ticket_no = ${user.ticket.number}`
+      const query = `SELECT v.first_name, v.last_name, v.ticket_no, t.t_type FROM novapark.visitor v INNER JOIN novapark.ticket t ON v.ticket_no = t.ticket_no WHERE v.ticket_no = ${user.ticket.number}`
       const ticketInfo = await pool.request().query(query);
       console.log("Loaded ticket info");
     } catch (err) {
@@ -28,7 +28,7 @@ async function loginUser(email, password) {
     }
     try {
         //SELECT * FROM users WHERE username = 'user1' AND password = 'hashed_password';
-        var query = 'SELECT top 1 * FROM novapark.[user] WHERE email = @email AND passkey = @passkey';
+        const query = 'SELECT top 1 * FROM novapark.[user] WHERE email = @email AND passkey = @passkey';
         await pool.connect();
         const result = await pool.request()
         .input('email', sql.NVarChar, email)

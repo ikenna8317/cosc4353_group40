@@ -71,7 +71,7 @@ app.post('/login', async function(req, res, next) {
     const status = await db.loginUser(email, password);
 
     if (status.loggedIn) {
-      console.log('app.js login success!')
+      // console.log('app.js login success!')
       req.session.user = {
         isLoggedIn: true,
         email,
@@ -81,7 +81,7 @@ app.post('/login', async function(req, res, next) {
       }
       res.redirect('/profile')
     } else {
-      console.log('app.js login fail!')
+      // console.log('app.js login fail!')
       res.redirect('/login')
     }
 })
