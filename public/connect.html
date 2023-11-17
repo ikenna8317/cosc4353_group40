@@ -50,36 +50,36 @@
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active pt-3" id="login" role="tabpanel" aria-labelledby="login-tab">
                 <h2>Login</h2>
-                <form id="login-form">
+                <form action="/login" method="post" id="login-form">
                     <div class="form-group">
-                        <label for="login-username">Username</label>
-                        <input type="text" id="login-username" name="login-username" class="form-control" required>
+                        <label for="email">Email</label>
+                        <input type="text" id="email" name="email" class="form-control" required>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" name="login-password" class="form-control" required>
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
                     </div>
                     <button type="submit" class="btn btn-primary" style="margin-top: 15px;"> Login</button>
                 </form>
             </div>
             <div class="tab-pane fade pt-3" id="signup" role="tabpanel" aria-labelledby="signup-tab">
                 <h2>Sign-Up</h2>
-                <form id="signup-form">
+                <form action="/signup" method="post" id="signup-form">
                     <div class="form-group">
-                        <label for="signup-firstname">First Name</label>
-                        <input type="text" id="signup-firstname" name="signup-firstname" class="form-control" required>
+                        <label for="fname">First Name</label>
+                        <input type="text" id="fname" name="fname" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="signup-lastname" style="margin-top: 10px;">Last Name</label>
-                        <input type="text" id="signup-lastname" name="signup-lastname" class="form-control" required>
+                        <label for="lname" style="margin-top: 10px;">Last Name</label>
+                        <input type="text" id="lname" name="lname" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="signup-email" style="margin-top: 10px;">Email</label>
-                        <input type="text" id="signup-email" name="signup-email" class="form-control" required>
+                        <label for="email" style="margin-top: 10px;">Email</label>
+                        <input type="text" id="email" name="email" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="signup-password" style="margin-top: 10px;">Password</label>
-                        <input type="password" id="signup-password" name="signup-password" class="form-control" required>
+                        <label for="password" style="margin-top: 10px;">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
                     </div>
                     <button type="submit" class="btn btn-success" style="margin-top: 15px;">Sign Up</button>
                 </form>

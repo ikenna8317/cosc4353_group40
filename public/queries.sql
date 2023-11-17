@@ -4,9 +4,42 @@ select top 1 * from novapark.visitor;
 --use this to rename column names
 EXEC sp_rename 'novapark.ticket.t_no', 'ticket_no', 'COLUMN';
 
-select top 2 * from novapark.[user];
 
-alter table novapark.[user] alter column privilege_type TINYINT
+select * from novapark.[user];
+
+insert into novapark.[user] (
+    first_name,
+    last_name,
+    privilege_type,
+    email,
+    passkey
+) values (
+    'ikenna',
+    'ezeaju',
+    11,
+    'iezeaju@novapark.com',
+    'staaglands!'
+)
+select top 1 * from novapark.[user]
+
+delete from novapark.[user]
+
+alter table novapark.[user]
+add first_name varchar(15) not null;
+alter table novapark.[user]
+add last_name varchar(15) not null;
+
+alter table novapark.[user]
+alter column email varchar(50) not NULL
+
+create table novapark.[user] (
+    user_no INT IDENTITY(1,1) PRIMARY KEY,
+    privilege_type tinyint not null default 0,
+    email varchar(25) not null,
+    passkey varchar(50) not null,
+    ticket_no NCHAR(7),
+    foreign key (ticket_no) REFERENCES novapark.ticket(ticket_no)
+)
 
 --gets visitor info that will be rendered in the profile page
 --replace below id with user input

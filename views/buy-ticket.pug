@@ -5,11 +5,11 @@ block main-grid
     form#buy-ticket-form(action="#", method="post")
         .mb-3.mt-3 
             label.form-label(for="fname") First Name:
-            input.form-control#fname(type="text", placeholder="Enter your first name", name="fname")
+            input.form-control#fname(type="text", placeholder="Leave blank to use your account first name", name="fname")
         .mb-3
             label.form-label(for="lname") Last Name:
-            input.form-control#lname(type="text", placeholder="Enter your last name", name="lname")
-        .mb-3 
+            input.form-control#lname(type="text", placeholder="Leave blank to use your account last name", name="lname")
+        .mt-3.mb-3 
             label.form-label(for="num-tickets") Number of additional tickets (Enter 0 for individual purchase):
             input.form-control#num-tickets(type="number", name="num-tickets", min="0")
         .ticket-selection.mb-3 

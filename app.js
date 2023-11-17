@@ -3,31 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
-var msal = require('@azure/msal-node');
-
-// var router = express.Router();
-
-const confidentialClientConfig = {
-  auth: {
-      clientId: process.env.APP_CLIENT_ID, 
-      authority: process.env.SIGN_UP_SIGN_IN_POLICY_AUTHORITY, 
-      clientSecret: process.env.APP_CLIENT_SECRET,
-      knownAuthorities: [process.env.AUTHORITY_DOMAIN], //This must be an array
-      redirectUri: process.env.APP_REDIRECT_URI,
-      validateAuthority: false
-  },
-  system: {
-      loggerOptions: {
-          loggerCallback(loglevel, message, containsPii) {
-              console.log(message);
-          },
-          piiLoggingEnabled: false,
-          logLevel: msal.LogLevel.Verbose,
-      }
-  }
-};
-
-const confidentialClientApplication = new msal.ConfidentialClientApplication(confidentialClientConfig);
+var db = require('./db.js')
 
 const APP_STATES = {
   LOGIN: 'login',
@@ -35,14 +11,6 @@ const APP_STATES = {
   PASSWORD_RESET: 'password_reset',
   EDIT_PROFILE : 'edit_profile'
 }
-
-const authCodeRequest = {
-  redirectUri: confidentialClientConfig.auth.redirectUri,
-};
-
-const tokenRequest = {
-  redirectUri: confidentialClientConfig.auth.redirectUri,
-};
 
 const sessionConfig = {
   secret: process.env.SESSION_SECRET,
@@ -54,40 +22,9 @@ const sessionConfig = {
 }
 
 
-/**
- * This method is used to generate an auth code request
- * @param {string} authority: the authority to request the auth code from 
- * @param {array} scopes: scopes to request the auth code for 
- * @param {string} state: state of the application
- * @param {Object} res: express middleware response object
- */
-const getAuthCode = (authority, scopes, state, res) => {
-
-  // prepare the request
-  console.log("Fetching Authorization code")
-  authCodeRequest.authority = authority;
-  authCodeRequest.scopes = scopes;
-  authCodeRequest.state = state;
-
-  //Each time you fetch Authorization code, update the relevant authority in the tokenRequest configuration
-  tokenRequest.authority = authority;
-
-  // request an authorization code to exchange for a token
-  return confidentialClientApplication.getAuthCodeUrl(authCodeRequest)
-      .then((response) => {
-          console.log("\nAuthCodeURL: \n" + response);
-          //redirect to the auth code URL/send code to 
-          res.redirect(response);
-      })
-      .catch((error) => {
-          res.status(500).send(error);
-      });
-}
-
-
 var app = express();
 //replace root with server root in production
-var root = '/home/ezeajui/cosc3380/novapark-dbms'
+var root = process.env.ROOT_PATH
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -103,8 +40,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // csecret1
 // ~0e8Q~sICd_PmPvUFQ~P8h7hmClEZI4IQh5kSbP2
 
-// catch 404 and forward to error handler
-
 app.get('/', function(req, res, next) {
   res.sendFile('./public/carousel.html', {root})
   // res.render('login-demo', {isLoggedIn: false, user: {name: '<anon>'}});
@@ -116,26 +51,69 @@ app.get('/', function(req, res, next) {
 // });
 
 //change password endpoint
-app.get('/change-passwd',(req, res)=>{
-  getAuthCode(process.env.RESET_PASSWORD_POLICY_AUTHORITY, [], APP_STATES.PASSWORD_RESET, res); 
-});
+// app.get('/change-passwd',(req, res)=>{
+//   getAuthCode(process.env.RESET_PASSWORD_POLICY_AUTHORITY, [], APP_STATES.PASSWORD_RESET, res); 
+// });
 
 //login endpoint
 app.get('/login', function(req, res, next) {
-  // res.render('login-demo');
-  getAuthCode(process.env.SIGN_UP_SIGN_IN_POLICY_AUTHORITY, [], APP_STATES.LOGIN, res);
+  if (req.session.user && req.session.user.isLoggedIn) {
+    res.redirect('/profile')
+  } else {
+    res.sendFile('./public/connect.html', {root});
+  }
 });
 
-//profile edit endpoint
-app.get('/profile-edit',(req, res)=>{
-  getAuthCode(process.env.EDIT_PROFILE_POLICY_AUTHORITY, [], APP_STATES.EDIT_PROFILE, res); 
+app.post('/login', async function(req, res, next) {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const status = await db.loginUser(email, password);
+
+    if (status.loggedIn) {
+      console.log('app.js login success!')
+      req.session.user = {
+        isLoggedIn: true,
+        email,
+        fname: status.user.fname,
+        lname: status.user.lname,
+        privilege: status.user.privilege
+      }
+      res.redirect('/profile')
+    } else {
+      console.log('app.js login fail!')
+      res.redirect('/login')
+    }
+})
+
+app.post('/signup', async function(req, res, next) {
+  var fname = req.body.fname;
+  var lname = req.body.lname;
+  var email = req.body.email;
+  var password = req.body.password;
+
+  //might do validation later
+  await db.addUser(fname, lname, email, password)
+
+  req.session.user = {
+    isLoggedIn: true,
+    email,
+    fname,
+    lname,
+    privilege: 0
+  }
+
+  res.redirect('/profile')
 });
+//profile edit endpoint
+// app.get('/profile-edit',(req, res)=>{
+//   getAuthCode(process.env.EDIT_PROFILE_POLICY_AUTHORITY, [], APP_STATES.EDIT_PROFILE, res); 
+// });
 
 app.get('/logout', async function(req, res, next) {
-  logoutUri = process.env.LOGOUT_ENDPOINT;
   req.session.destroy(() => {
       //When session destruction succeeds, notify B2C service using the logout uri.
-      res.redirect(logoutUri);
+      res.redirect('/');
   });
 });
 
@@ -217,16 +195,20 @@ function isLoggedIn(req, res, next) {
       next();
   } else {
       // User is not authenticated, redirect to login page or display an error
-      res.redirect('/'); // Redirect to the main page
+      res.redirect('/login'); // Redirect to the main page
   }
 }
 
 app.get('/profile', isLoggedIn, function(req, res, next) {
-  res.render('phome', {email: req.session.user.email, user: req.session.user});
+  res.render('phome', {email: req.session.user.email});
 });
 
 app.get('/profile-buy-ticket', isLoggedIn, function(req, res, next) {
-  res.render('buy-ticket', {email: req.session.user.email, name: req.session.user.name});
+  res.render('buy-ticket', {
+      email: req.session.user.email,
+      fname: req.session.user.fname,
+      lname: req.session.user.lname
+    });
 });
 
 app.get('/profile-paywall', isLoggedIn, function(req, res, next) {
@@ -238,7 +220,7 @@ app.get('/book-resort-reservation', isLoggedIn, function(req, res, next) {
 });
 
 app.get('/manage-resort-reservation', isLoggedIn, function(req, res, next) {
-  res.render('manage-resort-res', {email: req.session.user.email, reservation: req.session.user.resort_reservation});
+  res.render('manage-resort-res', {email: req.session.user.email});
 });
 
 // /manage-restaurant-reservation
@@ -247,7 +229,7 @@ app.get('/manage-restaurant-reservation', isLoggedIn, function(req, res, next) {
 });
 
 app.get('/refund-ticket', isLoggedIn, function(req, res, next) {
-  res.render('refund-ticket', {email: req.session.user.email, name: req.session.user.name, ticket: req.session.user.ticket});
+  res.render('refund-ticket', {email: req.session.user.email});
 });
 
 // app.listen(process.env.SERVER_PORT, () => {
