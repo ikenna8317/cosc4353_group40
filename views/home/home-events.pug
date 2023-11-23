@@ -1,0 +1,30 @@
+extends ../components/home/home-bare.pug
+
+mixin event-card(name, date, desc, imgPath)
+    col-12.col-md-4.mb-3
+        .card 
+            img.card-img-top(src=imgPath,alt="Theme park event")
+            .card-body
+                h5.card-title= name
+                p.other Start date: #{date}
+                p.card-text= desc
+
+//- pass in 'events' as list of event object
+block main  
+    //- -const event = {name: 'Hoolees', date: '12/02/2023', rating: 3.2, desc: 'A very fun ride, i recommend to everyone', imgPath: 'https://assets.simpleviewinc.com/simpleview/image/upload/c_limit,h_1200,q_75,w_1200/v1/clients/anaheimca/0910ZR_0029CR_R3_RTD_51578b3c-f4b9-4b12-916b-56591be853d7.jpg'};
+    -const events = []
+    h2.hp-title Events
+    .row
+        each event in events
+            +event-card(
+                event._name,
+                event.img_path,
+                event.rating,
+                event.event_desc
+            )
+        else 
+            p No upcoming events
+
+            
+        
+

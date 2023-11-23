@@ -1,0 +1,51 @@
+extends ../components/profile.pug 
+
+block main-grid
+    h1.title Book hotel and resort reservation
+    if editMode 
+        .mb-5 
+            //- bookDate, suiteType, stayInHours
+            h5(style="text-decoration: underline") Current selection:
+            p <b> Current reservation date: </b> #{bookDate}
+            p <b> Current suite type: </b> #{suiteType}
+            p <b> Current stay (in hours): </b> #{stayInHours}
+
+    -const formAction = (editMode ? "/profile/edit-resort" : "/profile/book-resort");
+    form.mt-3#book-resort-reservation(action=formAction, method="post")
+        .mb-3 
+            label.fw-bold.form-label(for="book_date") Entry date:
+            //- datetime-local
+            input.form-control#book_date(type="datetime-local", name="book_date", required)
+        .mb-3 
+            label.fw-bold.form-label Suite type:
+            .form-check
+                input#suite_choice_1.form-check-input(type="radio", name="suite_choice" value="Basic", required)
+                label.form-check-label(for="suite_choice_1") Basic ($35 per hour)
+            .form-check 
+                input#suite_choice_2.form-check-input(type="radio", name="suite_choice" value="Mini-suite")
+                label.form-check-label(for="suite_choice_2") Mini-suite ($65 per hour)
+            .form-check 
+                input#suite_choice_3.form-check-input(type="radio", name="suite_choice" value="Presidential")
+                label.form-check-label(for="suite_choice_3") Presidential ($280 per hour)
+            .form-check 
+                input#suite_choice_4.form-check-input(type="radio", name="suite_choice" value="Penthouse")
+                label.form-check-label(for="suite_choice_4") Penthouse  ($350 per hour)
+            .form-check 
+                input#suite_choice_5.form-check-input(type="radio", name="suite_choice" value="Royal")
+                label.form-check-label(for="suite_choice_5") Royal ($990 per hour)
+        .mb-3 
+            label.fw-bold.form-label Duration of stay (in hours): 
+            .form-check 
+                input#hours_choice_1.form-check-input(type="radio", name="hours_choice" value="4", required)
+                label.form-check-label(for="hours_choice_1") 4
+            .form-check 
+                input#hours_choice_2.form-check-input(type="radio", name="hours_choice" value="8")
+                label.form-check-label(for="hours_choice_2") 8
+            .form-check 
+                input#hours_choice_3.form-check-input(type="radio", name="hours_choice" value="12")
+                label.form-check-label(for="hours_choice_3") 12
+            .form-check 
+                input#hours_choice_4.form-check-input(type="radio", name="hours_choice" value="24")
+                label.form-check-label(for="hours_choice_4") 24 
+        button.btn.btn-primary Book
+        

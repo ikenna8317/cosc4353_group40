@@ -1,8 +1,8 @@
-extends components/profile.pug 
+extends ../components/profile.pug 
 
 block main-grid
     h1.title Payment information
-    form(action="/profile", method="post")
+    form(action="/profile/pay-success", method="post")
         .mb-3.mt-3
             label.form-label(for="name") Full name:
             input.form-control#name(type="text", placeholder="Enter your full name", name="name")

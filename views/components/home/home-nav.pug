@@ -1,0 +1,29 @@
+mixin nav-item(itemName, url, isTextWhite=true)
+    li
+        if isTextWhite
+            a(href=url).nav-link.px-2.text-white= itemName
+        else 
+            a(href=url).nav-link.px-2.text-secondary= itemName
+
+header.p-5.fixed-top.navigation-bar
+    .container
+        .d-flex.flex-wrap.align-items-center.justify-content-center.justify-content-lg-start
+            a(href="/").d-flex.align-items-center.mb-2.mb-lg-0.text-white.text-decoration-none
+                svg(width="40",height="32",role="img",aria-label="Bootstrap").bi.me-2
+                    use(xlink:href="#bootstrap")
+            ul.nav.col-12.col-lg-auto.me-lg-auto.mb-2.justify-content-center.mb-md-0
+                +nav-item('Home', '#', false)
+                +nav-item('Restaurants', '/restaurants')
+                +nav-item('Events', '/events')
+                +nav-item('Pricing', '/pricing')
+                +nav-item('Sales', '/sales')
+
+            .text-end
+                button.btn.btn-outline-light.me-2
+                    a(href="/login",alt="signin") Login
+                button.btn.btn-primary
+                    a(href="/login",alt="signup") Sign up 
+
+
+            
+                

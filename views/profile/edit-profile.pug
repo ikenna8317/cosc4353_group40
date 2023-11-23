@@ -1,0 +1,20 @@
+extends ../components/profile.pug 
+
+block main-grid
+    h1.title Edit profile
+    .mt-2.mb-2 
+        p <b> Email: </b> #{email}
+        p <b> First name: </b> #{fname}
+        p <b> Last name: </b> #{lname}
+    form#edit-profile(action="/profile/edit-profile", method="post")
+        .mb-3.mt-3 
+            label.fw-bold.form-label(for="email") New email:
+            input.form-control#email(type="email", name="email")
+        .mb-3 
+            label.fw-bold.form-label(for="fname") First name:
+            input.form-control#fname(type="text", name="fname")
+        .mb-3 
+            label.fw-bold.form-label(for="lname") Last name:
+            input.form-control#lname(type="text", name="lname")
+        button.btn.btn-primary(type="submit") Submit
+    

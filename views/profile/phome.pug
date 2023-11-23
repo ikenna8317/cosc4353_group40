@@ -1,0 +1,48 @@
+extends ../components/profile.pug 
+
+mixin alert(msg, type='success')
+    if msg
+        #alertMsg.alert.alert-dismissible(role="alert",class=`alert-${type}`)
+            p= msg 
+            button.btn-close(type="button",data-bs-dismiss="alert",aria-label="Close")
+
+mixin menu-item(name, desc, cta, addUrl='#', data={})
+    .menu-item.row
+        h1= name
+        p= desc 
+        each val, key in data
+            p <b>#{key}</b>: #{val}
+        else
+            p You have no item
+            a(href=addUrl).add-link.col-md-2
+                div 
+                    img(src="../images/plus-lg.svg", alt="Add item icon")
+                    p= cta
+
+block title 
+    title Profile Home 
+
+block main-grid
+    if (alertMsg)
+        +alert(alertMsg, alertType)
+    +menu-item(
+     'Day Tickets',
+     'A day ticket grants you access to all Novapark theme park locations for 24 hours. Choose any of the 3 types of day ticket passes',
+     'buy ticket',
+     '/profile/buy-ticket',
+     data[0]
+    )
+    +menu-item(
+     'Resort Reservation',
+     'Reserve a hotel room in our 4.5 star exclusive family oriented resort for your entire stay',
+     'reserve room',
+     '/profile/book-resort',
+     data[1]
+    )
+    +menu-item(
+     'Restaurant Reservation',
+     'Reserve seats at one of our on-park restaurants',
+     'reserve table',
+     '/profile/book-restaurant',
+     data[2]
+    )

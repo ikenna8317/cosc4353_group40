@@ -53,6 +53,12 @@
 .ticket-field span {
     margin-left: 0.8rem;
 }
+
+#alertMsg {
+    display: absolute;
+    top: 1rem;
+    /* left: 50%; */
+}
 /* 
 form {
     display: flex;

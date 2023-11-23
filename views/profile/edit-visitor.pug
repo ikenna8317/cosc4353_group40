@@ -1,0 +1,26 @@
+extends ../components/profile.pug 
+
+block main-grid
+    h1.title Visitor details 
+    if visitorNo 
+        ul.mb-3
+            each val, key in visitorInfo
+                li 
+                    p <b> Current #{key}: </b> #{val}
+        form#buy-ticket-form.mb-3(action="/profile/edit-visitor", method="post")
+            .mb-3 
+                label.form-label(for="fname") First Name:
+                input.form-control#fname(type="text", placeholder="Enter your first name", name="fname" required)
+            .mb-3
+                label.form-label(for="lname") Last Name:
+                input.form-control#lname(type="text", placeholder="Enter your last name", name="lname" required)
+            .mb-3
+                //-pattern="\d{10}"
+                label.form-label(for="phone") Phone number:
+                input.form-control#lname(type="text", placeholder="Enter phone", name="phone" required)
+            .mb-3 
+                label.form-label(for="age") Age:
+                input.form-control#age(type="number", name="age", min="9" required)
+            button.btn.btn-primary(type="submit") Submit
+    else 
+        p You have not registered as a visitor yet! You need to purchase a ticket <b>once</b> to register

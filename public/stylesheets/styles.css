@@ -1,3 +1,7 @@
+body {
+    background-color: #9e9e9e;
+}
+
 .bg-img-1 {
     background-image: url('https://img.texasmonthly.com/2023/07/texasland.jpg?auto=compress&crop=faces&fit=fit&fm=jpg&h=0&ixlib=php-3.3.1&q=45&w=1250');
 }
@@ -99,10 +103,19 @@ li :hover{
     animation-duration: 1s;
     animation-name: fadeDown;
 }
+
+h2.hp-title {
+    text-decoration: underline;
+    color: black;
+}
 .wholeres{
     animation-duration: 1s;
     animation-name: fadeDown;
 }
+/* #carouselExampleSlidesOnly {
+    margin-bott
+} */
+
 @keyframes fadeDown {
     0% {
        opacity: 0;
