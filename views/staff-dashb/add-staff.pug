@@ -1,0 +1,33 @@
+extends ../components/staff-dashb/bare.pug
+
+block main 
+    h2(style="text-decoration: underline") Add staff
+    .row.mt-3#load-finish
+        form#addForm(action="/mgr/add-staff", method="post")
+                .mb-3 
+                    label.form-label(for="fname") First name: 
+                    input.form-control#fname(type="text", name="fname", required)
+                .mb-3 
+                    label.form-label(for="lname") Last name: 
+                    input.form-control#lname(type="text", name="lname", required)
+                .mb-3 
+                    label.form-label(for="phone") Phone number: 
+                    input.form-control#phone(type="tel", name="phone", pattern="[0-9]{10}", placeholder="1234567890", required)
+                .mb-3 
+                    label.form-label(for="address") Enter address: 
+                    input.form-control#address(type="text", name="address", required)
+                .mb-3 
+                    label.form-label(for="weekWage") Enter week pay: 
+                    input.form-control#weekWage(type="number", name="weekWage", min="20", required)
+                .mb-3 
+                    if departments && departments.length > 0
+                        label.form-label(for="department") Assign a department: 
+                        select.form-select#department(name="department", aria-label="Choose a new department", required) 
+                            each department in departments 
+                                option(value=department.d_name)= department.d_name
+                    else 
+                        p Couldn't find any departments! try refreshing the page       
+                button.btn.btn-primary(type="submit") Add 
+
+block scripts
+    script(src="../js/add-staff.js") 

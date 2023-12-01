@@ -1,13 +1,64 @@
 select top 1 * from novapark.ticket
 select top 3 t_type from novapark.ticket;
 
+alter table novapark.staff
+drop constraint DF__staff__ssn__25518C17
+
+
+
+update novapark.staff
+set phone_no = @phone_no, address = @address,
+week_wage = @week_wage, dept_no = @dept_no where staff_no = @staff_no
+
+-- INSERT INTO destination_table (column1, column2, column3)
+-- SELECT column1, column2, column3
+-- FROM source_table;
+
+insert into novapark.staff (@fname, @lname, @phone_no, @address, @week_wage, d.d_name)
+select d.d_name
+from novapark.staff as s inner join novapark.department as d on s.dept_no = d.d_no where s.dept_no = @dept_no
+
+--sales is 5
+select top 1 * from novapark.staff order by staff_no desc
+
+alter table novapark.theme_event
+drop column event_no
+
+alter table novapark.theme_event
+drop 
+
+insert into novapark.theme_event (_name, img_path, event_desc, event_date)
+values ('Charity hunt', 'path-to-image8', 'find and hunt for charities', '2023-12-04 13:09')
+
+insert into novapark.staff (fname, lname, phone_no, address, week_wage, dept_no)
+select 'jay', 'smith', '8752228943', 'somewhere in hawaii', 1120, d_no
+from novapark.department where d_name = 'sales'
+
+select * from novapark.theme_event
+
+delete from novap
+
+
+
+select top 4 d_name, d_no from novapark.department
+
+-- insert into novapark.staff (fname, lname) values ('jay', 'smith')
+
 alter table novapark.resort_reservation
 add CONSTRAINT chk_date CHECK (_date >= DATEADD(HOUR, 24, GETDATE()))
 
 alter table novapark.restaurant_reservation
 alter restaurant_no _no smallint no null
 
+select d_no from novapark.department where d_name = 'legal'
+
 select top 5 * from novapark.restaurant_reservation
+
+select top 4 s.staff_no, s.phone_no, s.[address], s.week_wage, s.fname, s.lname, d.d_name
+from novapark.staff as s inner join novapark.department as d
+on s.dept_no = d.d_no
+
+select * from novapark.staff where staff_no = 88
 
 
 select * from novapark.[user]
@@ -80,8 +131,516 @@ values
 select top 0 * from novapark.[user]
 select top 0 * from novapark.visitor
 
+select ticket_no from novapark.restaurant_reservation
+
+select * from novapark.suite_and_prices
+
+--4, 8, 12, 24
+insert into novapark.resort_reservation
+(ticket_no, _date, suite_type, stay_in_hours)
+VALUES
+('abcdef', '2023-11-25 14:35', 'Mini-suite', 4);
+
+insert into novapark.resort_reservation
+(ticket_no, _date, suite_type, stay_in_hours)
+VALUES
+('ujs6gww', '2023-11-28 09:35', 'Royal', 8);
+
+select * from novapark.restaurant_reservation
+
+insert into novapark.resort_reservation
+(ticket_no, _date, suite_type, stay_in_hours)
+VALUES
+('7y4jurs', '2023-12-03 11:35', 'Mini-suite', 4);
+
+insert into novapark.resort_reservation
+(ticket_no, _date, suite_type, stay_in_hours)
+VALUES
+('gg636ge', '2023-11-29 05:35', 'Basic', 24);
+
+select * from novapark.resort_reservation
+
+select top 5 last_name from novapark.visitor
+
+create table novapark.product 
+(
+    pname varchar(10) not null,
+    pid tinyint not null,
+    constraint chk_pname check (pname in ('Restaurant', 'resort', 'ticket'))
+)
+
+insert into novapark.product
+(pname, pid) values ('ticket', 3)
+
+select * from novapark.product
+
+-- Transactions:
+
+-- transaction_id (Primary Key)
+-- visitor_id
+-- transaction_date
+-- amount
+
+insert into novapark.purchase
+(
+
+) values (
+
+);
+
+create table novapark.purchase
+(
+    _no int IDENTITY(1,1) primary key,
+    visitor_no int not null,
+    _date datetime not null,
+    amount numeric(5,2) not null,
+    product_id tinyint not null
+);
+
+alter table novapark.purchase
+alter column amount numeric(5,2)
+
+-- Inserting 50 random rows into the 'novapark.purchase' table
+DECLARE @counter INT = 1
+declare @visitor int = 57
+
+select count(*) from novapark.purchase
+
+select top 10 * from novapark.visitor order by visitor_no;
+select top 10 * from novapark.purchase order by visitor_no;
+
+select _no from novapark.purchase where product_id != 3
+
+update novapark.purchase
+set amount = 25.00 where amount is null
+
+select ride_no from novapark.amusement_ride
+
+alter table novapark.ride_entry
+add constraint chk_ride_no check (ride_no > 0 and ride_no <= 18)
+
+declare @counter int = 1
+
+select count(*) from novapark.ride_entry
+
+
+
+delete from novapark.ride_entry
+
+select * from novapark.amusement_ride
+
+EXEC sp_rename 'novapark.purchase.price', 'amount', 'COLUMN';
+
+
+select top 3 _date from novapark.purchase order by _date
+
+JOIN (
+    SELECT
+        MAX(Amount) AS Max_Amount,
+        MAX(Date) AS Max_Amount_Date
+    FROM
+        Transactions
+) AS MAX_Date ON Transactions.Amount = MAX_Date.Max_Amount
+
+
+declare @start_date date = '2023-01-01'; -- Replace with user input for start date
+declare @end_date date = '2023-12-31'; -- Replace with user input for end date
+
+SELECT
+    product.pname,
+    SUM(purchase.amount) AS total_revenue,
+    AVG(purchase.amount) AS average
+    -- MAX_Date.Max_Amount_Date AS Date_Of_Max_Amount
+FROM
+    novapark.purchase as purchase inner join novapark.product as product on purchase.product_id = product.pid
+    -- inner join ( SELECT MAX(amount) AS Max_Amount, MAX(convert(date, _date)) AS Max_Amount_Date FROM purchase ) AS MAX_Date ON product.amount = MAX_Date.Max_Amount   
+WHERE
+    -- Type IN ('Ticket', 'Merchandise', 'Food') -- Adjust types as needed
+    convert(date, _date) BETWEEN @start_date AND @end_date
+GROUP BY
+    product.pname;
+
+
+-- RideMaintenance:
+
+-- Maintenance_ID (Primary Key)
+-- Ride_ID (Foreign Key referencing Rides table)
+-- Maintenance_Date
+-- Description
+-- Status (e.g., 'Scheduled', 'In Progress', 'Completed')
+
+create table novapark.ride_maintenance (
+    _no int identity(1,1) primary key,
+    ride_no SMALLINT not null,
+    _date datetime not null,
+    _desc varchar(150),
+    _status char(11) default 'Scheduled',
+
+)
+
+create table novapark.maintain_log (
+    _no int identity(1,1) primary key,
+    maintain_no int not null,
+    technician_no smallint not null,
+    _date datetime
+);
+
+select top 10 _no from novapark.maintain_log
+
+alter table novapark.maintain_log
+alter column technician_no int
+
+declare @i smallint = 3171
+
+while @i < 3189
+BEGIN
+update novapark.maintain_log
+set maintain_no = @i where _no = (@i - 3170)
+set @i = @i + 1
+end;
+
+select * from novapark.ride_maintenance
+
+insert into novapark.maintain_log (technician_no, _date) 
+select staff_no, dateadd(day, -ABS(CHECKSUM(NEWID())) % 365, getdate())
+from novapark.technician
+
+update novapark.maintain_log
+set novapark.maintain_log.maintain_no = novapark.ride_maintenance._no
+from novapark.maintain_log join novapark.ride_maintenance on
+novapark.maintain_log.maintain_no = novapark.ride_maintenance._no
+
+
+
+select ride_no from novapark.amusement_ride
+
+-- ABS(CHECKSUM(NEWID()))
+declare @i smallint = 1;
+while @i < 19
+begin
+insert into novapark.ride_maintenance (
+    ride_no, _date, _status
+) values (
+    @i,
+    dateadd(day, -ABS(CHECKSUM(NEWID())) % 365, getdate()),
+    CASE ABS(CHECKSUM(NEWID())) % 3
+        WHEN 0 THEN 'Scheduled'
+        WHEN 1 THEN 'Completed'
+        WHEN 2 THEN 'In progress'
+        WHEN 3 THEN 'Scheduled'
+    END
+)
+set @i = @i + 1
+end;
+
+delete from novapark.ride_maintenance
+
+
+SELECT 
+        T.Technician_ID,
+        T.Technician_Name,
+        COUNT(ML.Log_ID) AS Tasks_Count
+    FROM 
+        Technicians T
+    LEFT JOIN 
+        MaintenanceLogs ML ON T.Technician_ID = ML.Technician_ID
+    WHERE 
+        T.Technician_Name = @TechnicianName
+        AND ML.Log_Timestamp BETWEEN @StartDate AND @EndDate
+    GROUP BY 
+        T.Technician_ID, T.Technician_Name;
+
+
+SELECT T.staff_no, T._name, COUNT(ML._no) AS Tasks_Count
+FROM novapark.technician T
+LEFT JOIN novapark.maintain_log ML ON T.staff_no = ML.technician_no
+WHERE T._name = 'Martin' AND convert(date, ML._date) BETWEEN convert(date, '2022-07-09') AND convert(date, '2023-10-10')
+GROUP BY T.staff_no, T._name;
+
+select top 4 _name from novapark.technician
+
+delete from novapark.[user]
+
+alter table novapark.is_visitor
+drop constraint fk_iv_userno
+
+alter table novapark.owns_ticket
+drop constraint FK_userno
+
+select * from novapark.[user]
+
+select top 4 * from novapark.technician
+select top 4 * from novapark.maintain_log
+
+select _name from novapark.technician
+
+alter table novapark.theme_event
+alter column img_path varchar(300)
+
+alter table novapark.theme_event
+drop constraint DF__theme_eve__thumb__2645B050
+
+update novapark.theme_event
+set img_path = 'https://bigalcharityhunt.com/wp-content/uploads/2022/07/BigAlCharityHunt-Website-Header-Logo-Retina.png'
+where event_no = 6;
+select * from novapark.theme_event;
+
+
+select count(*) from novapark.staff
+
+insert into novapark.technician
+select staff_no, lname from novapark.staff where dept_no = 7
+
+delete from novapark.technician
+
+update novapark.staff
+set dept_no = 7 where dept_no = 9 or dept_no = 3
+
+
+select d_name, d_no from novapark.department
+
+create table novapark.technician (
+    staff_no smallint not null,
+    _name varchar(15) not null
+)
+
+alter table novapark.ride_maintenance
+add constraint chk_status check (_status in ('Scheduled', 'Completed', 'In progress', 'None'))
+
+-- MaintenanceLogs:
+
+-- Log_ID (Primary Key)
+-- Maintenance_ID (Foreign Key referencing RideMaintenance)
+-- Technician_ID (Foreign Key referencing Technicians/Employees)
+-- Log_Timestamp
+
+
+CREATE TABLE GuestEntries (
+    Entry_ID INT PRIMARY KEY,
+    Ride_ID INT,
+    Guest_ID INT,
+    Entry_Timestamp DATETIME,
+    Exit_Timestamp DATETIME,
+    Wait_Time INT,
+    FOREIGN KEY (Ride_ID) REFERENCES Rides(Ride_ID),
+    -- Other guest entry details...
+);
+
+select * from novapark.[user]
+
+SELECT
+    R.ride_no as ride_no,
+    R.ride_name as ride_name,
+    COUNT(GE.ticket_no) AS total_entries
+FROM
+    novapark.amusement_ride as R
+LEFT JOIN
+    novapark.ride_checkin as GE ON R.ride_no = GE.ride_no
+WHERE
+    GE._date BETWEEN '${startDate}' AND '${endDate}'
+GROUP BY
+    R.ride_no, R.ride_name;
+
+select count(*) from novapark.ride_checkin
+
+alter table novapark.ride_checkin
+add wait_time smallint default 0
+
+create table novapark.
+
+
+
+
+
+
+
+declare @start_date date = '2023-01-01'; -- Replace with user input for start date
+declare @end_date date = '2023-12-31'; -- Replace with user input for end date
+
+SELECT
+    product.pname,
+    SUM(purchase.amount) AS total_revenue,
+    AVG(purchase.amount) AS average,
+    MAX_Date.Max_Amount_Date AS Date_Of_Max_Amount
+FROM
+    novapark.purchase as purchase
+    inner join novapark.product as product on purchase.product_id = product.pid
+    inner join ( SELECT MAX(amount) AS Max_Amount, MAX(convert(date, _date)) AS Max_Amount_Date FROM purchase ) AS MAX_Date ON purchase.amount = MAX_Date.Max_Amount   
+WHERE
+    convert(date, _date) BETWEEN @start_date AND @end_date
+GROUP BY
+    product.pname;
+
+
+
+
+
+alter table novapark
+
+SELECT
+    Type,
+    SUM(Amount) AS Total_Revenue
+FROM
+    Transactions
+WHERE
+    Type IN ('Ticket', 'Merchandise', 'Food') -- Adjust types as needed
+GROUP BY
+    Type;
+
+
+
+
+
+-- while @counter <= 60
+select top 4 * from novapark.ride_entry
+
+insert into novapark.ride_checkin (ticket_no, ride_no, _date)
+select ticket_no, ABS(CHECKSUM(NEWID())) % 18 + 1, DATEADD(day, -60 + ABS(CHECKSUM(NEWID())) % 60 + 1, GETDATE()) from novapark.ticket
+-- SET @counter = @counter + 1
+
+insert into novapark.ticket_purchase (ticket_no, _date)
+select ticket_no, DATEADD(day, -60 + ABS(CHECKSUM(NEWID())) % 60 + 1, GETDATE()) from novapark.ticket 
+
+create table novapark.ticket_purchase ( ticket_no nchar(7), _date datetime )
+
+select count(*) from novapark.restaurant_reservation
+
+alter table novapark.resort_reservation
+add is_valid bit default 1
+
+WHILE @counter <= 53
+BEGIN
+    INSERT INTO novapark.purchase (visitor_no, _date, product_id)
+    VALUES (
+        -- ABS(CHECKSUM(NEWID())) % 110 + 57, -- Random visitor number between 57 and 110
+        @visitor,
+        DATEADD(DAY, -ABS(CHECKSUM(NEWID())) % 365, GETDATE()), -- Random date within the last year
+        -- ABS(CHECKSUM(NEWID())) % 100, -- Random amount between 0 and 1000
+        ABS(CHECKSUM(NEWID())) % 3 + 1 -- Random product ID between 1 and 10
+    )
+
+    SET @counter = @counter + 1
+    SET @visitor = @visitor + 1
+END
+
+select count(*) from novapark.ride_entry
+
+update novapark.purchase
+set amount = 3
+where product_id != 3
+
+select * from novapark.ticket_prices;
+select * from novapark.product
+
+create table novapark.ride_checkin (
+    ticket_no nchar(7) not null,
+    ride_no smallint not null,
+    _date datetime not null
+);
+
+select convert(DATE, _date) as converted_date, count(distinct visitor_no) as visitors
+from novapark.purchase
+group by convert(DATE, _date)
+order by converted_date;
+
+UPDATE novapark.purchase
+SET amount = 
+    CASE ABS(CHECKSUM(NEWID())) % 3
+        WHEN 0 THEN 25.0
+        WHEN 1 THEN 55.5
+        WHEN 2 THEN 99.5
+        WHEN 3 THEN 25.0
+    END
+    where amount is null;
+--  select 1 from novapark.purchase where product_id > 3
+
+delete from novapark.purchase
+
+select * from novapark.ticket_prices
+
+insert into novapark.ticket_prices (
+    t_type, price
+) values ('platinum', 99.5)
+
+
+
+
+
+
+select top 6 * from novapark.purchase
+
+update novapark.product set pname = 'restaurant' where pname = 'Restaurant'
+
+alter table novapark.visitor
+add gender bit
+alter table novapark.visitor
+add income NUMERIC(9,2)
+
+alter table novapark.visitor
+drop column gender
+
+--Basic, Presidential, Royal, Mini-suite
+--4, 8, 12, 24
+insert into novapark.resort_reservation (ticket_no, _date, suite_type, stay_in_hours)
+values ('22e2sdd', '2023-11-27 14:35', 'Basic', 12);
+insert into novapark.resort_reservation (ticket_no, _date, suite_type, stay_in_hours)
+values ('hhdy73d', '2023-11-25 14:35', 'Presidential', 8);
+insert into novapark.resort_reservation (ticket_no, _date, suite_type, stay_in_hours)
+values ('876eyge', '2023-11-30 09:35', 'Royal', 4);
+insert into novapark.resort_reservation (ticket_no, _date, suite_type, stay_in_hours)
+values ('883h7e2', '2023-11-26 14:35', 'Royal', 4);
+insert into novapark.resort_reservation (ticket_no, _date, suite_type, stay_in_hours)
+values ('997du2e', '2023-11-29 14:35', 'Basic', 8);
+
+insert into novapark.restaurant_reservation (ticket_no, _no, _date, num_of_people)
+values ('lbcfger', 7, '2023-11-25 14:35', 3);
+insert into novapark.restaurant_reservation (ticket_no, _no, _date, num_of_people)
+values ('jfg657y', 7, '2023-11-26 14:35', 2);
+insert into novapark.restaurant_reservation (ticket_no, _no, _date, num_of_people)
+values ('6hryr7h', 7, '2023-11-29 17:35', 3);
+insert into novapark.restaurant_reservation (ticket_no, _no, _date, num_of_people)
+values ('663geuu', 7, '2023-11-30 09:35', 1);
+
+select _name, open_time, close_time from novapark.restaurant
+
+insert into novapark.restaurant_reservation (ticket_no, _no, _date, num_of_people)
+values ('ab43eds', 7, '2023-11-25 14:35', 1)
+
+select ticket_no from novapark.restaurant_reservation
+
+delete from novapark.restaurant_reservation where ticket_no = 'lbcfger'
+
+select ticket_no, _date, num_of_people
+from novapark.restaurant as r inner join novapark.restaurant_reservation as rr
+on r._no = rr._no
+where r._name = 'Adventura Munchies';
+
+select * from novapark.ticket
+
+insert into novapark.purchase
+
+
+select count(*) from novapark.theme_event
+
+INSERT INTO novapark.ticket (ticket_no)
+SELECT ticket_no
+FROM novapark.visitor where ticket_no != 'Q5USevU';
+
+alter table 
+
+select ride_name, ride_no from novapark.amusement_ride
+
+select _name from novapark.restaurant where _no = 7
+
+select * from novapark.ticket
+
+select top 5 _name, _no from novapark.restaurant;
+
+
 alter table novapark.visitor
 alter column ticket_no nchar(7)
+
+select top 5 _date from novapark.restaurant_reservation
 
 --1142999
 select ticket_no from novapark.visitor where visitor_no = 1
@@ -96,6 +655,36 @@ select rr._date, rr.suite_type, rr.stay_in_hours, v.first_name, v.last_name
 where rr.ticket_no = 'nkXKD4Q'
 
 select * from novapark.owns_ticket
+
+--8
+--9y5C5d8
+
+select * from test.A;
+select * from test.B;
+select * from test.A as a
+inner join test.B as b on a.colA = 10
+where a.colA = 10
+
+
+insert into test.B (colA, colB, colC) values (91, 18, 4)
+
+select * from 
+
+
+select count(*) from novapark.ticket
+
+SELECT 1 FROM novapark.restaurant WHERE _no = @_no AND CONVERT(TIME, '" + formattedBookDate + "') BETWEEN open_time AND close_time AND '" + formattedBookDate + "' > GETDATE();
+
+alter table novapark.owns_ticket
+drop constraint FK_ticketno
+
+delete from novapark.ticket where ticket_no = '9y5C5d8';
+update novapark.owns_ticket set ticket_no = NULL where user_no = 8;
+update novapark.visitor set ticket_no = NULL where ticket_no = '9y5C5d8';
+
+select ticket_no from novapark.owns_ticket where ticket_no = '9y5C5d8'
+select  ticket_no from novapark.ticket where ticket_no = '9y5C5d8';
+select  ticket_no from novapark.visitor where ticket_no = '9y5C5d8';
 
 
 alter table novapark.restaurant_reservation
@@ -124,6 +713,37 @@ select _date, ticket_no from novapark.resort_reservation where (DATEDIFF(HOUR, _
 -- delete from novapark.ticket where ticket_no = 'nkXKD4Q';
 -- delete from novapark.[user] where user_no = 3;
 -- delete from novapark.visitor where ticket_no = 'nkXKD4Q';
+
+-- delete from novapark.ticket;
+-- delete from novapark.visitor;
+-- delete from novapark.owns_ticket;
+-- delete from novapark.is_visitor;
+
+--NT4Y1fj
+--gold
+
+insert into novapark.[user] (privilege_type, email, passkey, first_name, last_name)
+values (4, 'pos@npark.com', 'skyblue123', 'anders', 'kol')
+-- select * from novapark.resort_reservation
+
+delete from novapark.ticket where ticket_no = 'NT4Y1fj';
+
+update novapark.owns_ticket set ticket_no = NULL where user_no = 4
+
+update novapark.visitor set ticket_no = NULL where ticket_no = 'NT4Y1fj';
+
+update novapark.[user] set passkey = 'abc123' where user_no = 4 and passkey = 'lote123';
+select * from novapark.[user];
+
+
+select * from novapark.owns_ticket;
+select * from novapark.visitor;
+
+
+
+alter table novapark.is_visitor
+drop constraint fk_iv_visitorno
+
 
 
 

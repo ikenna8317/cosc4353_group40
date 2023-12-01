@@ -1,0 +1,53 @@
+extends ../components/staff-dashb/bare.pug
+
+mixin spinner()
+    .spinner-border#loadingIndicator(role="status", style="display: none; width: 3rem; height: 3rem;") 
+
+block main 
+    h2(style="text-decoration: underline") Manage staff
+    +spinner()
+    .row.mt-3#load-finish 
+        form#modifyForm(action="/mgr/manage-events", method="post")
+                .mb-3 
+                    label.form-label(for="no") Event no: 
+                    input.form-control#no(type="text", name="no", required)
+                .mb-3 
+                    label.form-label(for="name") Event name: 
+                    input.form-control#name(type="text", name="name", required)
+                .mb-3 
+                    label.form-label(for="imgUrl") Event image url: 
+                    input.form-control#imgUrl(type="text", name="imgUrl", required)
+                .mb-3 
+                    label.form-label(for="desc") Event description: 
+                    input.form-control#desc(type="text", name="desc", required)
+                .mb-3 
+                    label.form-label(for="date") Event date: 
+                    input.form-control#date(name="date", type="datetime-local", required)
+                button.btn.btn-primary(type="submit") Modify 
+        .mt-5 
+            p <i> Only the first #{numOfItemsLoaded} items are loaded</i>
+            button.btn.btn-primary#loadAllBtn Load all
+            #table-container
+                table#resultTable.table.table-striped
+                    thead 
+                        tr 
+                            th(scope="col") Event no
+                            th(scope="col") Event name
+                            th(scope="col") Event date
+                            th(scope="col") - 
+                    tbody 
+                        if events
+                            each event in events 
+                                tr 
+                                    -let isHeader = true;
+                                    each val, key in event
+                                        if (isHeader)
+                                            th(scope="row")= val 
+                                            -isHeader = false;
+                                        else 
+                                            td= val
+                                    td 
+                                        button.btn.btn-danger.remove-btn Cancel
+
+block scripts 
+    script(src="../js/manage-events.js") 

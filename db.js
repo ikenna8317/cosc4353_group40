@@ -1,50 +1,41 @@
 const sql = require('mssql');
 const dbc = require('./db-config.js');
 const crypto = require('crypto');
+const isProduction = require('./nodeenv.js');
 
 const pool = new sql.ConnectionPool(dbc.dbConfig);
 
 async function loginUser(email, password) {
-    const payload = {
-        loggedIn: true,
-        user: {
-            privilege: -1,
-            email: '',
-            fname: '',
-            lname: ''
-        },
-    }
+    const user = {};
+
     try {
         //SELECT * FROM users WHERE username = 'user1' AND password = 'hashed_password';
-        const query = 'SELECT top 1 * FROM novapark.[user] WHERE email = @email AND passkey = @passkey';
+        const query = 'SELECT top 1 user_no, privilege_type, first_name, last_name FROM novapark.[user] WHERE email = @email AND passkey = @passkey';
         await pool.connect();
         const result = await pool.request()
         .input('email', sql.NVarChar, email)
         .input('passkey', sql.NVarChar, password)
         .query(query);
 
-        if (result.recordset.length > 0) {
-            const userRow = result.recordset[0];
-            
-            payload.loggedIn = true;
-            payload.user.privilege = userRow.privilege_type;
-            payload.user.email = userRow.email;
-            payload.user.fname = userRow.first_name;
-            payload.user.lname = userRow.last_name;
-            payload.user.userNo = userRow.user_no;
+        if (result.recordset.length > 0) {            
+            user.userNo = result.recordset[0].user_no;
+            user.privilege = result.recordset[0].privilege_type;
+            user.fname = result.recordset[0].first_name;
+            user.lname = result.recordset[0].last_name;
+            user.loggedIn = true;
+
             console.log('User successfully logged in\n');
         } else {
-            console.log('User could not login!\n');
             throw new Error('User could not login');
         }
         
     } catch (err) {
-        console.error('Error:', err);
-        payload.loggedIn = false;
-      } finally {
-        pool.close();
-      }
-      return payload;
+      console.error('Error:', err);
+      user.loggedIn = false;
+    } finally {
+      pool.close();
+    }
+      return user;
 }
 
 async function addUser(fname, lname, email, password) {
@@ -60,9 +51,9 @@ async function addUser(fname, lname, email, password) {
 
       userNo = result.recordset[0].user_no;
 
-      result = await pool.request()
-      .input('user_no', sql.Int, userNo)
-      .query('insert into novapark.owns_ticket (user_no, ticket_no) values (@user_no, NULL)');
+      // result = await pool.request()
+      // .input('user_no', sql.Int, userNo)
+      // .query('insert into novapark.owns_ticket (user_no, ticket_no) values (@user_no, NULL)');
 
       console.log("User successfully added!\n");
     } catch (err) {
@@ -81,14 +72,14 @@ async function addTicketAndVisitor(input) {
   //{visitorNo, wasSuccess}
   // findExistingVisitor(userNo)
     const vlookup = await findExistingVisitor(input.userNo);
-    if (!(vlookup.wasSuccess))
-      throw new Error('Visitor lookup was not successful');
+    // if (!(vlookup.wasSuccess))
+    //   throw new Error('Visitor lookup was not successful');
 
     //   delete from novapark.ticket where ticket_no = @ticket_no;
     //  update novapark.owns_ticket set ticket_no = NULL where user_no = @user_no;
     //  update novapark.visitor set ticket_no = NULL where ticket_no = @ticket_no;
     let query;
-    if (vlookup.visitorNo) {
+    if (vlookup.wasSuccess) {
       query = `
       insert into novapark.ticket (ticket_no, t_type) values (@ticket_no, @t_type);
       update novapark.visitor set ticket_no = @ticket_no where visitor_no = @visitor_no;
@@ -108,7 +99,7 @@ async function addTicketAndVisitor(input) {
     let result;
     await pool.connect();
 
-    if (vlookup.visitorNo) {
+    if (vlookup.wasSuccess) {
       result = await pool.request()
       .input('ticket_no', sql.NChar(7), ticketNum)
       .input('t_type', sql.NVarChar(8), input.ticketOption)
@@ -322,7 +313,8 @@ async function getResortReservation(ticketNo) {
 // select rr._date, rr.num_of_people, r._name
 // from novapark.restaurant as r inner join novapark.restaurant_reservation as rr on r._no = rr._no
 async function getRestaurantReservation(ticketNo) {
-  const payload = {wasSuccess: true};
+  let wasSuccess = true;
+  const payload = {};
   try {
     await pool.connect();
     const result = await pool.request()
@@ -336,6 +328,32 @@ async function getRestaurantReservation(ticketNo) {
     }
     else 
       throw new Error('getRestaurantReservation: Could not find a restaurant reservation for current user');
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+//{wasSuccess, bookDate, numOfPeople}
+async function getRestaurantReservationFor(ticketNo, restaurantName) {
+  const payload = {wasSuccess: true};
+  try {
+    await pool.connect();
+    const result = await pool.request()
+    .input('ticket_no', sql.NChar, ticketNo)
+    .input('_name', sql.NVarChar(40), restaurantName)
+    .query('select rr._date, rr.num_of_people from novapark.restaurant as r inner join novapark.restaurant_reservation as rr on r._no = rr._no where rr.ticket_no = @ticket_no and r._name = @_name');
+    
+    if (result.recordset.length > 0) {
+      payload.bookDate = result.recordset[0]._date;
+      payload.numOfPeople = result.recordset[0].num_of_people;
+    }
+    else 
+      throw new Error('getRestaurantReservationFor: Could not find reservation at ' + reservationName + ' for current user\n');
 
   } catch (err) {
     console.error('Error:', err);
@@ -477,6 +495,89 @@ async function removeTicket(ticketNo, userNo) {
   return errMsg;
 }
 
+async function getAllRestaurantReservations(name) {
+  let reservations = null;
+  let wasSuccess = true;
+  try {
+    const query = `
+      select ticket_no, _date, num_of_people
+      from novapark.restaurant as r inner join novapark.restaurant_reservation as rr
+      on r._no = rr._no
+      where r._name = @_name;
+    `;
+    await pool.connect();
+    const result = await pool.request()
+    .input('_name', sql.NVarChar(40), name)
+    .query(query);
+  
+    if (result.recordset.length > 0)
+      reservations = result.recordset;
+    else
+      throw new Error('Not one reservation was found');
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+    } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, reservations};
+}
+
+
+async function getAllResortReservations() {
+  let reservations = null;
+  let wasSuccess = true;
+  try {
+    const query = `
+      select * from novapark.resort_reservation;
+    `;
+
+    await pool.connect();
+    const result = await pool.request()
+    .query(query);
+
+    if (result.recordset.length > 0)
+      reservations = result.recordset;
+    else
+      throw new Error('Not one reservation was found');
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+    } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, reservations};
+}
+
+async function getRestaurantNo(name) {
+  let wasSuccess = true;
+  let no;
+
+  try {
+    //.input('ticket_no', sql.NChar(7), ticketNo)
+    await pool.connect();
+    const result = await pool.request()
+    .input('_name', sql.NVarChar(40), name)
+    .query('select _no from novapark.restaurant where _name = @_name');
+
+    if (result.recordset.length > 0) 
+      no = result.recordset[0]._no;
+    else
+      throw new Error('Unable to find restaurant with identifier ' + no);
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, no};
+}
 
 async function loadRestaurantNames() {
   let wasSuccess = true;
@@ -576,6 +677,7 @@ async function updatePassword(userNo, newPassword, currPassword) {
       set passkey = @passkey
       where user_no = @user_no and passkey = @curr_passkey;
       select 1
+      from novapark.[user]
       where user_no = @user_no and passkey = @passkey;
     `;
 
@@ -679,7 +781,590 @@ async function updateVisitor(userNo, info) {
     pool.close();
   }
 
-  return wasSuccess
+  return wasSuccess;
+}
+
+async function getSuiteInfo() {
+  let wasSuccess = true;
+  let payload;
+  
+  try {
+    const query = `
+      select * from novapark.suite_and_prices;
+    `;
+
+    await pool.connect();
+    const result = await pool.request()
+    .query(query);
+
+    if (result.recordset.length > 0) 
+      payload = result.recordset;
+    else 
+      throw new Error('Unable to get a single suite info');
+    
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+async function getRides(detailed=false) {
+  let wasSuccess = true;
+  let payload;
+  try {
+    const query = `
+    select ride_name, ride_no
+    from novapark.amusement_ride
+  `;
+
+  await pool.connect();
+  const result = await pool.request()
+  .query(query);
+
+  if (result.recordset.length > 0) 
+    payload = result.recordset;
+  else
+    throw new Error('Not a single ride was returned');
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+
+//reports
+async function ridePopularityReport(startDate, endDate, rideName) {
+  let wasSuccess = true;
+  let payload;
+
+  try {
+    startDate = startDate.replace('T', ' ');
+    endDate = endDate.replace('T', ' ');
+
+    const query = `
+      SELECT a.ride_name,
+      COUNT(DISTINCT re.ticket_no) AS total_visitors
+      FROM novapark.ride_checkin as re
+      JOIN novapark.amusement_ride as a ON re.ride_no = a.ride_no
+      JOIN novapark.visitor as v ON re.ticket_no = v.ticket_no
+      WHERE a.ride_name = @ride_name
+      AND re._date BETWEEN CONVERT(DATE, '${startDate}') AND CONVERT(DATE,'${endDate}')
+      GROUP BY a.ride_name;
+    `;
+
+    await pool.connect();
+    const result = await pool.request()
+    .input('ride_name', sql.NVarChar(30), rideName)
+    .query(query);
+
+    payload = result.recordset;
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+async function revenueReport(startDate, endDate) {
+  let wasSuccess = true;
+  let payload;
+
+  try {
+    startDate = startDate.replace('T', ' ');
+    endDate = endDate.replace('T', ' ');
+
+    const query = `
+    SELECT
+      product.pname as pname,
+      SUM(purchase.amount) AS total_revenue,
+      AVG(purchase.amount) AS average
+  FROM
+      novapark.purchase as purchase inner join novapark.product as product on purchase.product_id = product.pid
+  WHERE
+      convert(date, _date) BETWEEN '${startDate}' AND '${endDate}'
+  GROUP BY
+      product.pname;
+    `;
+
+    await pool.connect();
+    const result = await pool.request()
+    .query(query);
+
+    payload = result.recordset;
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+
+// SELECT T.staff_no, T._name, COUNT(ML._no) AS Tasks_Count
+// FROM novapark.technician T
+// LEFT JOIN maintain_log ML ON T.staff_no = ML.technician_no
+// WHERE T._name = @name AND convert(date, ML._date) BETWEEN convert(date, @startDate) AND convert(date, @endDate)
+// GROUP BY T.staff_no, T._name;
+
+async function technicianWorkloadReport(input) {
+  let wasSuccess = true;
+  let { name, startDate, endDate } = input;
+  let payload;
+
+  try {
+    startDate = startDate.replace('T', ' ');
+    endDate = endDate.replace('T', ' ');
+
+    const query = `
+      SELECT T.staff_no, T._name, COUNT(ML._no) AS Tasks_Count
+      FROM novapark.technician T
+      LEFT JOIN novapark.maintain_log ML ON T.staff_no = ML.technician_no
+      WHERE T._name = @name AND convert(date, ML._date) BETWEEN convert(date, '${startDate}') AND convert(date, '${endDate}')
+      GROUP BY T.staff_no, T._name;
+    `;
+
+    await pool.connect();
+    const result = await pool.request()
+    .input('name', sql.VarChar(15), name)
+    .query(query);
+
+    payload = result.recordset;
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+// {wasSuccess, payload}
+async function getTechnicians() {
+    let wasSuccess = true;
+    let payload;
+
+    try {
+      const query = `
+        select _name from novapark.technician
+      `;
+
+      await pool.connect();
+      const result = await pool.request()
+      .query(query);
+
+      if (result.recordset.length < 0)
+          throw new Error('Unable to get list of technicians');
+          
+      payload = result.recordset;
+
+    } catch (err) {
+      console.error('Error:', err);
+      wasSuccess = false;
+    } finally {
+      pool.close();
+    }
+  
+    return {wasSuccess, payload};
+}
+
+
+async function rideUsageReport(startDate, endDate, rideName='', getAll=false) {
+  let wasSuccess = true;
+  let payload;
+
+  try {
+    startDate = startDate.replace('T', ' ');
+    endDate = endDate.replace('T', ' ');
+
+    let query;
+    if (getAll) {
+        query = `
+                  SELECT
+              R.ride_name as ride_name,
+              COUNT(GE.ticket_no) AS total_entries
+          FROM
+              novapark.amusement_ride as R
+          LEFT JOIN
+              novapark.ride_checkin as GE ON R.ride_no = GE.ride_no
+          WHERE
+              GE._date BETWEEN convert(date, '${startDate}') AND convert(date, '${endDate}')
+          GROUP BY
+              R.ride_no, R.ride_name;
+        `;
+    } else {
+        query = `
+                    SELECT
+                R.ride_name as ride_name,
+                COUNT(GE.ticket_no) AS total_entries
+            FROM
+                novapark.amusement_ride as R
+            LEFT JOIN
+                novapark.ride_checkin as GE ON R.ride_no = GE.ride_no
+            WHERE
+                GE._date BETWEEN '${startDate}' AND '${endDate}'
+                AND R.ride_name = @ride_name
+            GROUP BY
+                R.ride_no, R.ride_name;
+          `;
+    }
+
+    await pool.connect();
+    const result = await pool.request()
+    .input('ride_name', sql.NVarChar(30), rideName)
+    .query(query);
+
+    payload = result.recordset;
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+async function lookupStaffNo(fname, lname) {
+  let wasSuccess = true;
+  let no;
+
+  try {
+    const query = `select staff_no where fname = @fname and lname = @lname`;
+
+    await pool.connect();
+    const result = await pool.request()
+    .input('fname', sql.NVarChar(15), fname)
+    .input('lname', sql.NVarChar(15), lname)
+    .query(query);
+
+    if (result.recordset.length > 0)
+      no = result.recordset[0].staff_no;
+    else
+      throw new Error('Could not find staff number');
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, no};
+}
+
+async function lookupDeptNo(dname) {
+  let wasSuccess = true;
+  let dno;
+
+  try {
+    const query = `select d_no from novapark.department where d_name = @d_name`;
+
+    await pool.connect();
+    const result = await pool.request()
+    .input('d_name', sql.NVarChar(15), dname)
+    .query(query);
+
+    if (result.recordset.length > 0)
+      dno = result.recordset[0].d_no;
+    else
+      throw new Error('Could not find staff number');
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, dno};
+}
+
+
+async function updateStaff(details) {
+  let wasSuccess = true;
+
+  try {
+    const { no, phone, address, weekWage, department } = details;
+
+    const { wasSuccess: wasSuccess2, dno } = await lookupDeptNo(department);
+    if (!wasSuccess2)
+      throw new Error('Unable to lookup department');
+
+    const query = `
+      update novapark.staff
+      set phone_no = @phone_no, address = @address,
+      week_wage = @week_wage, dept_no = @dept_no where staff_no = @staff_no
+    `;
+  
+    await pool.connect();
+    const result = await pool.request()
+    .input('staff_no', sql.SmallInt, no)
+    .input('phone_no', sql.NChar(10), phone)
+    .input('address', sql.NVarChar(65), address)
+    // .input('supervisor_no', sql.SmallInt, supervisor)
+    .input('week_wage', sql.Decimal(7,2), weekWage)
+    .input('dept_no', sql.SmallInt, dno)
+    .query(query);
+
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+  return wasSuccess;
+}
+
+
+//{ no, name, imgUrl, desc, date }
+async function updateEvent(details) {
+  let wasSuccess = true;
+
+  try {
+    let { no, name, imgUrl, desc, date } = details;
+    date = date.replace('T', ' ');
+
+    const query = `
+      update novapark.theme_event
+      set _name = @_name, img_path = @img_path,
+      event_desc = @event_desc, event_date = '${date}' where event_no = @event_no
+    `;
+  
+    await pool.connect();
+    const result = await pool.request()
+    .input('event_no', sql.SmallInt, no)
+    .input('_name', sql.NVarChar(22), name)
+    .input('img_path', sql.NVarChar(140), imgUrl)
+    .input('event_desc', sql.VarChar(125), desc)
+    // .input('event_date', sql.NVarChar(22), date)
+    .query(query);
+
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+  return wasSuccess;
+}
+
+//{ fname, lname, phone, address, weekWage, department }
+async function addStaff(info) {
+  let wasSuccess = true;
+  const { fname, lname, phone, address, weekWage, department } = info;
+
+  try {
+
+    const query = `
+      insert into novapark.staff (fname, lname, phone_no, address, week_wage, dept_no)
+      select @fname, @lname, @phone_no, @address, @week_wage, d_no
+      from novapark.department where d_name = @d_name
+    `;
+  
+    await pool.connect();
+    await pool.request()
+    .input('fname', sql.NVarChar(15), fname)
+    .input('lname', sql.NVarChar(15), lname)
+    .input('phone_no', sql.NChar(10), phone)
+    .input('address', sql.NVarChar(65), address)
+    .input('week_wage', sql.Decimal(7,2), weekWage)
+    .input('d_name', sql.NVarChar(15), department)
+    .query(query);
+
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+  return wasSuccess;
+}
+
+//{ name, imgUrl, desc, date }
+async function addEvent(info) {
+  let wasSuccess = true;
+  let { name, imgUrl, desc, date } = info;
+  date = date.replace('T', ' ');
+
+  try {
+
+    const query = `
+      insert into novapark.theme_event (_name, img_path, event_desc, event_date)
+      values (@_name, @img_path, @event_desc, '${date}')
+    `;
+  
+    await pool.connect();
+    await pool.request()
+    .input('_name', sql.NVarChar(22), name)
+    .input('img_path', sql.NVarChar(140), imgUrl)
+    .input('event_desc', sql.VarChar(125), desc)
+    .query(query);
+
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+  return wasSuccess;
+}
+
+
+// 'Staff no', 'First name', 'Last name'
+async function getStaff(limit) {
+  let wasSuccess = true;
+  let payload;
+
+  try {
+    const limitPrefixer = limit ? `top ${limit}` : '';
+    const query = `
+      select ${limitPrefixer} s.staff_no, s.fname, s.lname, s.phone_no, s.[address], s.week_wage, d.d_name
+      from novapark.staff as s inner join novapark.department as d
+      on s.dept_no = d.d_no
+    `;
+
+    await pool.connect();
+    const result = await pool.request()
+    .query(query);
+
+    if (result.recordset.length > 0)
+      payload = result.recordset;
+    else
+      throw new Error('Could not find staff number');
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+async function getEvents(limit, forHomePage=false) {
+  let wasSuccess = true;
+  let payload;
+
+  try {
+    const limitPrefixer = limit ? `top ${limit}` : '';
+    let query;
+    if (forHomePage) {
+        query = `
+          select ${limitPrefixer} _name, img_path, event_desc, event_date
+          from novapark.theme_event
+        `;
+    } else {
+        query = `
+          select ${limitPrefixer} event_no, _name, event_date
+          from novapark.theme_event
+      `;
+    }
+    
+
+    await pool.connect();
+    const result = await pool.request()
+    .query(query);
+
+    if (result.recordset.length > 0)
+      payload = result.recordset;
+    else
+      throw new Error('Could not get events');
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, payload};
+}
+
+async function removeStaff(staffNo) {
+  let wasSuccess = true;
+
+  try {
+    const query = `delete from novapark.staff where staff_no = @staff_no`;
+
+    await pool.connect();
+    await pool.request()
+    .input('staff_no', sql.SmallInt, staffNo)
+    .query(query);
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return wasSuccess;
+}
+
+async function removeEvent(eventNo) {
+  let wasSuccess = true;
+
+  try {
+    const query = `delete from novapark.theme_event where event_no = @event_no`;
+
+    await pool.connect();
+    await pool.request()
+    .input('event_no', sql.Int, eventNo)
+    .query(query);
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return wasSuccess;
+}
+
+async function loadDepartments() {
+  let wasSuccess = true;
+  let departments;
+
+  try {
+    await pool.connect();
+    result = await pool.request()
+    .query('select d_name from novapark.department');
+
+    if (result.recordset.length > 0) 
+      departments = result.recordset;
+    else
+      throw new Error('Could not load departments');
+
+  } catch (err) {
+    console.error('Error:', err);
+    wasSuccess = false;
+  } finally {
+    pool.close();
+  }
+
+  return {wasSuccess, departments};
 }
 
 module.exports = {
@@ -690,9 +1375,11 @@ module.exports = {
   getTicketInfo,
   addResortReservation,
   loadRestaurantNames,
+  getRestaurantNo,
   addRestaurantReservation,
   getResortReservation,
   getRestaurantReservation,
+  getRestaurantReservationFor,
   removeReservation,
   removeTicket,
   updateRestaurantReservation,
@@ -701,6 +1388,24 @@ module.exports = {
   updatePassword,
   getProfile,
   findExistingVisitor,
-  updateVisitor
+  updateVisitor,
+  getAllRestaurantReservations,
+  getAllResortReservations,
+  getSuiteInfo,
+  getRides,
+  ridePopularityReport,
+  revenueReport,
+  technicianWorkloadReport,
+  rideUsageReport,
+  updateStaff,
+  loadDepartments,
+  getStaff,
+  removeStaff,
+  addStaff,
+  getEvents,
+  removeEvent,
+  updateEvent,
+  addEvent,
+  getTechnicians
 };
 

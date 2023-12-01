@@ -3,7 +3,8 @@
 nav.row.bg-dark.text-light.py-4.px-3
     .navbar 
         div 
-            p= email 
+            if email
+                p= email 
             a(href="/logout").btn.btn-primary Sign out
         a(href="/profile/") 
             img(src="../images/house-fill.svg", alt="home icon")

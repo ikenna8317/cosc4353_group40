@@ -1,0 +1,13 @@
+extends ../components/staff-dashb/bare.pug
+
+block main 
+    .row 
+        if status 
+            .d-flex.flex-row.align-items-center
+                img(src="../images/check.svg", alt="green check mark")
+                h2 User has been successfully checked in
+        else 
+            .d-flex.flex-row.align-items-center
+                img(src="../images/x.svg", alt="red x mark")
+                h2 User has not been verified. Try again later
+        a(href=checkinUrl) Go back to visitor check in page

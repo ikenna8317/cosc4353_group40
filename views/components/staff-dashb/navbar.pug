@@ -1,0 +1,16 @@
+//-input
+//- 
+nav.row.text-light.py-2.px-3
+    -const _action = (action) ? action : 'pos';
+    .navbar.d-flex.justify-content-between.px-3
+        .left.d-flex.flex-row.align-items-center
+            div.d-flex.flex-column 
+                p= email
+                a(href="/logout").btn.btn-primary Sign out
+            ul.d-flex.justify-content-around.flex-row 
+                li.ms-5 
+                    a(href=`/${_action}/actions`) Actions
+                li.ms-5 
+                    a(href=`/${_action}/reports`) Reports
+        a(href=`/${_action}/`) 
+            img(src="../images/house-fill.svg", alt="home icon")

@@ -1,0 +1,48 @@
+extends ../components/staff-dashb/bare.pug
+
+//- block meta
+//-     meta#restaurantName(content=restaurantName)
+
+block main  
+    .row
+        h3 <b>Restaurant: </b> #{restaurantName}
+        .spinner-border#loadingIndicator(role="status", style="display: none; width: 3rem; height: 3rem;") 
+        #load-finish
+            form#modifyForm(action="/pos/manage-restaurant", method="post")
+                .mb-3 
+                    label.form-label#rname(for="restaurantName") Restaurant name: 
+                    input.form-control#restaurantName(type="text", name="restaurantName", value=restaurantName, readonly)
+                .mb-3 
+                    label.form-label(for="ticketNo") Enter ticket number: 
+                    input.form-control#ticketNo(type="text", name="ticketNo", required)
+                .mb-3 
+                    label.form-label(for="date") Enter new date and time: 
+                    input.form-control#date(type="datetime-local", name="date", required)
+                .mb-3 
+                    label.form-label(for="numOfSeats") Enter number of seats: 
+                    input.form-control#numOfSeats(type="number", name="numOfSeats", required)
+                button.btn.btn-primary(type="submit") Modify 
+            .mt-3 
+                if reservations.length > 0
+                    table.table.table-striped#resultTable
+                        thead 
+                            tr
+                                th(scope="col") Ticket number 
+                                th(scope="col") Reservation date
+                                th(scope="col") Seats
+                                th(scope="col") -
+                        tbody 
+                            -let i = 1;
+                            each reservation in reservations 
+                                tr  
+                                    th(scope="row")= reservation.ticket_no 
+                                    td= reservation._date
+                                    td= reservation.num_of_people
+                                    td.remove-btn 
+                                        button.btn.btn-danger.delete-btn(data-id=i) Remove
+                                -i++;
+                else 
+                    p There are no reservations at this time
+
+block scripts 
+    script(src="../js/manage-restaurant.js", defer) 

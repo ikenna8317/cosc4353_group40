@@ -1,0 +1,21 @@
+extends ../components/staff-dashb/bare.pug
+
+mixin report-tab(title, action="#", desc=null)
+    .col-xs-12.col-6.col-lg-4.action-tab 
+        .card.p-3
+            h5= title 
+            if desc
+                p= desc 
+            a.btn.btn-primary(href=action) Go
+
+
+block main 
+    .row.gx-3.gy-3 
+        //- +report-tab("Daily attendance report", "/pos/da-report", "Basic report that allows you to view the daily attendance distribution of the theme park")
+        +report-tab("Revenue report", "/pos/rv-report", "See revenue by day range and even by ticket, resort and restaurants transaction types")
+        +report-tab("Ride popularity report", "/pos/rp-report")
+        +report-tab("Ride usage report", "/pos/ru-report")
+
+
+
+

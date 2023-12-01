@@ -2,16 +2,6 @@ const user = require('express').Router();
 const db = require('../db');
 const {PayPostType} = require('../constants.js');
 
-// /
-// /book-resort
-// /book-restaurant
-// /buy-ticket
-// /book-resort
-// /paywall
-// /pay-success
-// /book-resort
-// /manage-resort-reservation
-// /refund-ticket
 user.get('/test', async function(req, res, next) {
 
     let ticket = await db.getTicketInfo(req.session.user.userNo);
@@ -61,18 +51,14 @@ user.get('/buy-ticket', doesNotHaveTicket, async function(req, res, next) {
 
     const {visitorNo, wasSuccess} = await db.findExistingVisitor(req.session.user.userNo);
 
-    if (!wasSuccess) {
-      req.session.user.alertMsg = 'Unable to lookup your visitor registration. Try again later';
-      req.session.user.alertType = 'danger';
-      return res.redirect('/profile/');
-    }
+    let haveTicket = wasSuccess;
 
     res.render('profile/buy-ticket', {
         email: req.session.user.email,
         fname: req.session.user.fname,
         lname: req.session.user.lname,
         visitorNo,
-        haveTicket: false
+        haveTicket
     });
 });
 
@@ -98,7 +84,7 @@ user.post('/pay-success', hasPostData, async function(req, res, next) {
       if (await db.addTicketAndVisitor(req.session.user.postData.ticketInfo)) {
         msg = "Successfully purchased ticket";
       } else {
-        msg = "Could not complete ticket purchase. Try again later!";
+        msg = "Could not complete visitor pass purchase. Try again later!";
         alertType = "danger";
       }
     } else if (req.session.user.postData.type === PayPostType.RESORT) {
@@ -228,12 +214,12 @@ user.post('/edit-resort', mustHaveTicket, async function(req, res) {
 
 user.get('/manage-restaurant-reservation', async function(req, res, next) {
     const ticketInfo = (await db.getTicketInfo(req.session.user.userNo));
-    if (!ticketInfo.wasSuccess)
-        res.render('profile/manage-restaurant-res', {email: req.session.user.email, reservation: {}});
+    if (!ticketInfo.wasSuccess) 
+        res.render('profile/manage-restaurant-res', {email: req.session.user.email});
     else {
-        const reservation = await db.getRestaurantReservation(ticketInfo.ticketNum);
-        if (reservation.wasSuccess)
-            res.render('profile/manage-restaurant-res', {email: req.session.user.email, reservation, fname: ticketInfo.fname, lname: ticketInfo.lname, tnumber: ticketInfo.ticketNum});
+        const {wasSuccess, payload} = await db.getRestaurantReservation(ticketInfo.ticketNum);
+        if (wasSuccess)
+            res.render('profile/manage-restaurant-res', {email: req.session.user.email, reservation: payload, fname: ticketInfo.fname, lname: ticketInfo.lname, tnumber: ticketInfo.ticketNum});
         else
             res.render('profile/manage-restaurant-res', {email: req.session.user.email});
 
@@ -290,7 +276,7 @@ user.route('/edit-visitor')
     return res.redirect('/profile/');
   }
 
-  res.render('profile/edit-visitor', {visitorInfo: {'visitor no': visitorNo, 'first name': fname, 'last name': lname, 'ticket number': ticketNo, 'phone': phone, 'age': age}, visitorNo});
+  res.render('profile/edit-visitor', {email: req.session.user.email, visitorInfo: {'visitor no': visitorNo, 'first name': fname, 'last name': lname, 'ticket number': ticketNo, 'phone': phone, 'age': age}, visitorNo});
 })
 .post(async function(req, res) {
   const {fname, lname, phone, age} = req.body;
@@ -387,7 +373,7 @@ async function doesNotHaveTicket(req, res, next) {
     if (!ticketInfo.wasSuccess)
         next();
     else {
-        req.session.user.alertMsg = 'You already have a ticket!';
+        req.session.user.alertMsg = 'You already have a pass!';
         req.session.user.alertType = 'danger';
         res.redirect('/profile/');
     }     
@@ -402,7 +388,7 @@ async function mustHaveTicket(req, res, next) {
         next();
     }
     else {
-        req.session.user.alertMsg = 'You need a ticket to use this resource';
+        req.session.user.alertMsg = 'You need a visitor pass to use this resource';
         req.session.user.alertType = 'danger';
         res.redirect('/profile/');
     }     

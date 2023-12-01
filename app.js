@@ -1,52 +1,77 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const db = require('./db.js');
+const crypto = require('crypto');
+const { UserRedirects } = require('./constants.js');
+const isProduction = require('./nodeenv');
+
+// const port = process.env.PORT || 3000
+
+
+function generateRandomSecret(length = 32) {
+  return crypto.randomBytes(length).toString('hex');
+}
 
 //routers
 const user = require('./routes/user');
+const pos = require('./routes/pos');
+const mgr = require('./routes/mgr');
 
-
-const sessionConfig = {
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-      secure: false, // set this to true on production
-  }
-}
-
-
+console.log('Environment:', isProduction);
 const app = express();
-//replace root with server root in production
+
 const root = __dirname;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+// const randomSecret = generateRandomSecret(8);
 
-app.use(session(sessionConfig))
+const sessionConfig = {
+  secret: 'session123', // Use the randomly generated secret key
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: isProduction// set this to true on production
+  }
+}
+
+app.use(session(sessionConfig));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+// app.use(cookieParser());
+// {fallthrough: isProduction, index: false}
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/profile', isLoggedIn);
+app.use('/profile', isUser);
 app.use('/profile', user);
 
-// csecret1
-// ~0e8Q~sICd_PmPvUFQ~P8h7hmClEZI4IQh5kSbP2
+app.use('/pos', isPointOfSales);
+app.use('/mgr', isManager);
+
+app.use('/pos', pos);
+app.use('/mgr', mgr);
+
 
 app.get('/', function(req, res, next) {
   res.sendFile('./public/carousel.html', {root})
-  // res.render('login-demo', {isLoggedIn: false, user: {name: '<anon>'}});
 });
 
-app.get('/events', function(req, res, next) {
-  res.render('home/home-events')
+app.get('/test', function(req, res, next) {
+  res.sendFile('./public/pricing.html', {root})
+});
+
+app.get('/events', async function(req, res, next) {
+  const { wasSuccess, payload } = await db.getEvents(false, true);
+  if (!wasSuccess)
+      console.error('Unable to retrieve events!');
+
+  res.render('home/home-events', {events: payload});
 });
 
 //login endpoint
@@ -58,43 +83,48 @@ app.get('/login', function(req, res, next) {
   }
 });
 
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500).send('Error: ' + err.message);
+});
+
 app.post('/login', async function(req, res, next) {
     const email = req.body.email;
     const password = req.body.password;
 
-    const status = await db.loginUser(email, password);
+    const { loggedIn, userNo, privilege, fname, lname } = await db.loginUser(email, password);
 
-    if (status.loggedIn) {
+    if (loggedIn) {
       // console.log('app.js login success!')
       req.session.user = {
         isLoggedIn: true,
-        userNo: status.user.userNo,
-        privilege: status.user.privilege,
+        userNo,
+        privilege,
         email,
-        fname: status.user.fname,
-        lname: status.user.lname,
+        fname,
+        lname,
         alertMsg: '',
         alertType: 'success',
         postData: { hasData: false },
 
       }
-      console.log('Your user_no is', req.session.user.userNo);
-      res.redirect('/profile/');
+      req.session.save(function(err) {
+        res.redirect('/' + UserRedirects[privilege] + '/');
+      });
+      console.log('User logged in');
+      
     } else {
       // console.log('app.js login fail!')
       res.redirect('/login')
     }
-})
+});
 
 app.post('/signup', async function(req, res, next) {
-  const fname = req.body.fname;
-  const lname = req.body.lname;
-  const email = req.body.email;
-  const password = req.body.password;
+  const { fname, lname, email, password} = req.body;
 
   //might do validation later
   const userNo = await db.addUser(fname, lname, email, password);
   
+  console.log(userNo);
   if (userNo != -1) {
     req.session.user = {
       isLoggedIn: true,
@@ -107,10 +137,14 @@ app.post('/signup', async function(req, res, next) {
       privilege: 0,
       postData: {hasData: false}
     }
-    res.redirect('/profile/');
+    console.log('User: ', req.session.user);
+
+    req.session.save(function(err) {
+        res.redirect('/profile/');
+      });
   } else {
-    //send a custom message to the user later on
     console.error("Error signing up user\n");
+    res.status(500).send('Database lookup error');
   }
 });
 
@@ -121,17 +155,40 @@ app.get('/logout', async function(req, res, next) {
 });
 
 
-//middlewares
 
-function isLoggedIn(req, res, next) {
-  // Check authentication logic (e.g., checking session, tokens, etc.)
-  if (req.session.user && req.session.user.isLoggedIn) {
-      // User is authenticated, proceed to the next middleware or route handler
+//authenticate as user
+function isUser(req, res, next) {
+  // console.log(req.session.user);
+  if (req.session.user && req.session.user.isLoggedIn && req.session.user.privilege === 0) {
+    // console.log('Called isUser middleware');
       next();
   } else {
-      // User is not authenticated, redirect to login page or display an error
-      res.redirect('/login'); // Redirect to the main page
+    // console.log('failed isUser middleware');
+    // res.status(500).send('failed user login middeware');
+      res.redirect('/login');
   }
 }
+
+//authenticate as point of sales
+function isPointOfSales(req, res, next) {
+  if (req.session.user && req.session.user.isLoggedIn && req.session.user.privilege === 4) {
+      next();
+  } else {
+      res.redirect('/login');
+  }
+}
+
+//authenticate as senior manager
+function isManager(req, res, next) {
+  if (req.session.user && req.session.user.isLoggedIn && req.session.user.privilege === 17) {
+      next();
+  } else {
+      res.redirect('/login');
+  }
+}
+
+// app.listen(port, () => {
+//   console.log(`site at http://localhost:${port}`)
+// });
 
 module.exports = app;

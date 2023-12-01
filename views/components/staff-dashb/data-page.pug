@@ -1,0 +1,43 @@
+extends ../components/staff-dashb/bare.pug
+
+block main  
+    .row
+        .spinner-border#loadingIndicator(role="status", style="display: none; width: 3rem; height: 3rem;") 
+        #load-finish
+            form(action="/pos/manage-resort", method="post")
+                .mb-3 
+                    label.form-label(for="ticketNo") Enter ticket number: 
+                    input.form-control#ticketNo(type="text", name="ticketNo", required)
+                .mb-3 
+                    label.form-label(for="date") Enter new date and time: 
+                    input.form-control#date(type="datetime-local", name="date", required)
+                .mb-3 
+                    label.form-label(for="suiteChoice") Enter suite type: 
+                    select.form-select#suiteChoice(name="suiteChoice")
+                        each suite in suites 
+                            option(value=suite)= suite
+                button.btn.btn-primary(type="submit") Modify 
+            .mt-3 
+                if reservations.length > 0
+                    table.table.table-striped#resultTable
+                        thead 
+                            tr 
+                                each header in headers
+                                    th(scope="col")= header 
+                                th(scope="col") -
+                        tbody 
+                            -let i = 1;
+                            each row in rows 
+                                tr  
+                                    th(scope="row")= row 
+                                    td= reservation._date
+                                    td= reservation.suite_type
+                                    td= reservation.stay_in_hours
+                                    td 
+                                        button.btn.btn-danger.delete-btn(data-id=i) Remove
+                                -i++;
+                else 
+                    p= customEmptyDataMessage
+
+block scripts 
+    script(src="../js/data-page.js") 

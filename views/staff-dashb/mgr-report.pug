@@ -1,0 +1,18 @@
+extends ../components/staff-dashb/bare.pug
+
+mixin report-tab(title, action="#", desc=null)
+    .col-xs-12.col-6.col-lg-4.action-tab 
+        .card.p-3
+            h5= title 
+            if desc
+                p= desc 
+            a.btn.btn-primary(href=action) Go
+
+
+block main 
+    .row.gx-3.gy-3 
+        +report-tab("Technician workload", "/mgr/tw-report", "View the workload report of a specified ride technician")
+
+
+
+

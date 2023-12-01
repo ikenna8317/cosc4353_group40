@@ -1,7 +1,7 @@
 extends ../components/profile.pug 
 
 block main-grid
-    h1.title Fill in ticket details
+    h1.title Fill in day pass details
     if !haveTicket
         form#buy-ticket-form.mb-3(action="/profile/buy-ticket", method="post")
             if !visitorNo
@@ -19,7 +19,7 @@ block main-grid
                     label.form-label(for="age") Age:
                     input.form-control#age(type="number", name="age", min="9")
             .ticket-selection.mb-3 
-                label.form-label Ticket type 
+                label.form-label Pass type 
                 .form-check 
                     input#ticket_choice_1.form-check-input(type="radio", name="ticket_choice", value="silver")
                     label.form-check-label(for="ticket_choice_1") Silver
@@ -31,7 +31,7 @@ block main-grid
                     label.form-check-label(for="ticket_choice_3") Platinum
             button.btn.btn-primary.mb-5(type="submit") Proceed to pay
     else 
-        h6 You already have a ticket!
+        h6 You already have a pass!
 
 
         

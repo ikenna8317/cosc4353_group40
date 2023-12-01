@@ -1,0 +1,63 @@
+extends ../components/staff-dashb/bare.pug
+
+mixin spinner()
+    .spinner-border#loadingIndicator(role="status", style="display: none; width: 3rem; height: 3rem;") 
+
+block main 
+    h2(style="text-decoration: underline") Manage staff
+    +spinner()
+    .row.mt-3#load-finish 
+        form#modifyForm(action="/mgr/manage-staff", method="post")
+                .mb-3 
+                    label.form-label(for="no") Staff number: 
+                    input.form-control#no(type="number", name="no", required)
+                .mb-3 
+                    label.form-label(for="phone") Phone number: 
+                    input.form-control#phone(type="tel", name="phone", pattern="[0-9]{10}", placeholder="1234567890", required)
+                .mb-3 
+                    label.form-label(for="address") Enter address: 
+                    input.form-control#address(type="text", name="address", required)
+                .mb-3 
+                    label.form-label(for="weekWage") Enter week pay: 
+                    input.form-control#weekWage(type="number", name="weekWage", min="20", required)
+                .mb-3 
+                    if departments && departments.length > 0
+                        label.form-label(for="department") Assign a department: 
+                        select.form-select#department(name="department", aria-label="Choose a new department", required) 
+                            each department in departments 
+                                option(value=department.d_name)= department.d_name
+                    else 
+                        p Couldn't find any departments! try refreshing the page       
+                button.btn.btn-primary(type="submit") Modify 
+        .mt-5 
+            p <i> Only the first #{numOfStaffLoaded} items are loaded</i>
+            button.btn.btn-primary#loadAllBtn Load all
+            #table-container
+                table#resultTable.table.table-striped
+                    thead 
+                        tr 
+                            th(scope="col") Staff no
+                            th(scope="col") First name
+                            th(scope="col") Last name 
+                            th(scope="col") Phone number 
+                            th(scope="col") Address 
+                            th(scope="col") Week wage 
+                            th(scope="col") Department 
+                            th(scope="col") - 
+                    tbody 
+                        if staffs
+                            //- -let i = 1;
+                            each staff in staffs 
+                                tr 
+                                    -let isHeader = true;
+                                    each val, key in staff
+                                        if (isHeader)
+                                            th(scope="row")= val 
+                                            -isHeader = false;
+                                        else 
+                                            td= val
+                                    td 
+                                        button.btn.btn-danger.remove-btn Dismiss
+
+block scripts 
+    script(src="../js/manage-staff.js") 

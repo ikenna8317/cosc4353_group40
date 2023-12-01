@@ -1,12 +1,12 @@
 extends ../components/home/home-bare.pug
 
-mixin event-card(name, date, desc, imgPath)
+mixin event-card(name, imgPath, desc, date)
     col-12.col-md-4.mb-3
         .card 
             img.card-img-top(src=imgPath,alt="Theme park event")
             .card-body
                 h5.card-title= name
-                p.other Start date: #{date}
+                p.other Date and time: #{date}
                 p.card-text= desc
 
 //- pass in 'events' as list of event object
@@ -19,8 +19,8 @@ block main
             +event-card(
                 event._name,
                 event.img_path,
-                event.rating,
-                event.event_desc
+                event.event_desc,
+                event.event_date
             )
         else 
             p No upcoming events

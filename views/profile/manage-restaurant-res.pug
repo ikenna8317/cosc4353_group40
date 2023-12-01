@@ -8,14 +8,14 @@ block main-grid
             .details.mt-3 
                 h5 <b>First name:</b> #{fname}
                 h5 <b>Last name:</b> #{lname}
-                h5 <b>Ticket number*:</b> #{tnumber}
+                h5 <b>Pass number*:</b> #{tnumber}
                 h5 <b>Vendor/Restaurant:</b> #{reservation.restaurantName}
                 h5 <b>Reservation date:</b> #{reservation.bookDate}
                 h5 <b>Number of seats:</b> #{reservation.numOfPeople}
                 form(action="/profile/remove-restaurant-reservation", method="post")
                     button.btn.btn-danger(type="submit") Remove reservation
                 .mt-1
-                    a.btn.btn-secondary(href="/profile/book-restaurant") Modify reservation
+                    a.btn.btn-secondary(href="/profile/edit-restaurant") Modify reservation
         else
             p You have no reservation yet.
             a.a-link(href="/profile/book-restaurant") Click here to book a reservation

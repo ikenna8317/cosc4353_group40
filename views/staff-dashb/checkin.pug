@@ -1,0 +1,33 @@
+extends ../components/staff-dashb/bare.pug
+
+//- <form>
+//-   <div class="form-group">
+//-     <label for="cars">Choose a car:</label>
+//-     <select class="form-control" id="cars" name="cars">
+//-       <option value="volvo">Volvo</option>
+//-       <option value="saab">Saab</option>
+//-       <option value="mercedes">Mercedes</option>
+//-       <option value="audi">Audi</option>
+//-     </select>
+//-   </div>
+//-   <!-- Other form elements and submit button here -->
+//-   <button type="submit" class="btn btn-primary">Submit</button>
+//- </form>
+
+
+block main 
+    .row 
+        -const action = isRestaurant ? "/pos/checkin-restaurant" : "/pos/checkin-resort"
+        form(action=action, method="post")
+            if isRestaurant
+                .mb-3 
+                    label.form-label(for="restaurantName") Enter Restaurant name: 
+                    select.form-control#restaurantName(name="restaurantName", required)
+                        each restaurant in restaurants 
+                            option(value=restaurant._name)= restaurant._name
+                        else 
+                            p There are no restaurants available
+            .mb-3 
+                label.form-label(for="ticketNo") Enter ticket number: 
+                input.form-control#ticketNo(type="text", name="ticketNo", required)
+            button.btn.btn-primary(type="submit") Check in
