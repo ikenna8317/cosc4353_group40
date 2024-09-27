@@ -7,3 +7,5 @@ old/
 app-trim.txt
 note.txt
 bin/
+views/home
+views/profile
