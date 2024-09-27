@@ -1,0 +1,27 @@
+extends ../components/profile.pug 
+
+block main-grid
+    h1.title Create event
+    form#buy-ticket-form.mb-3(action="/profile/update profile", method="post")
+        .mb-3 
+            label.form-label Event Name:
+            input.form-control(type="text", name="event-name")
+        .mb-3 
+            label.form-label Event description:
+            input.form-control(type="text", name="event-desc")
+        .mb-3 
+            label.form-label Location:
+            input.form-control(type="text", name="event-loc")
+        .mb-3 
+            label.form-label Required skills:
+            select#req-skills(name="req-skills")
+        .mb-3 
+            label.form-label Urgency:
+            select#urgency(name="urgency")
+        .mb-3 
+            label.form-label Date:
+            input.form-control(type="datetime-local", name="date")
+        button.btn.btn-primary.mb-5(type="submit") Create event
+
+
+        

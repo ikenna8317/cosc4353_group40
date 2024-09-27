@@ -69,36 +69,6 @@ app.use(function(err, req, res, next) {
 });
 
 
-app.post('/signup', async function(req, res, next) {
-  const { fname, lname, email, password} = req.body;
-
-  //might do validation later
-  const userNo = await db.addUser(fname, lname, email, password);
-  
-  console.log(userNo);
-  if (userNo != -1) {
-    req.session.user = {
-      isLoggedIn: true,
-      userNo,
-      fname,
-      lname,
-      email,
-      alertMsg: '',
-      alertType: 'success',
-      privilege: 0,
-      postData: {hasData: false}
-    }
-    console.log('User: ', req.session.user);
-
-    req.session.save(function(err) {
-        res.redirect('/profile/');
-      });
-  } else {
-    console.error("Error signing up user\n");
-    res.status(500).send('Database lookup error');
-  }
-});
-
 app.get('/logout', async function(req, res, next) {
   req.session.destroy(() =>   res.redirect('/'));
 });
