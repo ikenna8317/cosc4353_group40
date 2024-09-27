@@ -1,0 +1,40 @@
+extends ../components/pf_nosidebar.pug
+
+mixin option-box(label, iconUrl, url)
+    a.col-6.p-2.option-box 
+        img(src=iconUrl, alt="option icon")
+        p.mt-2= label
+
+mixin filter-toggle(filters)
+    mixin filter-item(label, selected)
+        if (selected)
+            li.col-3.padding.filter-item.selected= label
+        else 
+            li.col-3.padding.filter-item= label
+
+
+    -let first = true;
+    each label in filters 
+        +filter-item(label, first);
+        -first = false;
+
+mixin event-card(name, location, imgSrc)
+    .col-sm-3.col-md-4.p-2 
+        img(src=imgSrc, alt="event", width="300", height="260")
+        .event-info 
+            p= name 
+            .d-flex
+                img(src="../images/geo-alt-fill.svg", alt="location icon")
+                p= location
+
+
+block main-grid 
+    .container-md.h-100 
+        .row 
+            +option-box('User Settings', '../images/person-fill.svg', '#')
+            +option-box('Manage events', '../images/calendar-event.svg', '#')
+    +filter-toggle(['Popular', 'Nearby'])
+    each event in events 
+        +event-card(event.name, event.location, event.imgSrc)
+
+, 

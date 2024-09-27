@@ -1,0 +1,38 @@
+extends ../components/profile.pug 
+
+block main-grid
+    h1.title Update profile
+    form#buy-ticket-form.mb-3(action="/profile/update profile", method="post")
+        .mb-3 
+            label.form-label Full Name:
+            input.form-control#fname(type="text", name="fname")
+        .mb-3 
+            label.form-label Address 1:
+            input.form-control#fname(type="text", name="address1")
+        .mb-3 
+            label.form-label Address 2:
+            input.form-control#fname(type="text", name="address2")
+        .mb-3 
+            label.form-label City:
+            input.form-control#fname(type="text", name="city")
+        .mb-3 
+            label.form-label State:
+            input.form-control#fname(type="text", name="state")
+        .mb-3 
+            label.form-label Zipcode:
+            input.form-control#fname(type="text", name="zipcode")
+        
+        .mb-3
+            label.form-label Preferences:
+            input.form-control#lname(type="text", name="pref")
+        .mb-3
+            //-pattern="\d{10}"
+            label.form-label(for="phone") Phone number:
+            input.form-control#lname(type="text", placeholder="Enter phone", name="phone")
+        .mb-3 
+            label.form-label(for="skills") Skills:
+            input.form-control#age(type="dropdown", name="skills")
+        button.btn.btn-primary.mb-5(type="submit") Update profile
+
+
+        

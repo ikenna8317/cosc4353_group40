@@ -6,7 +6,10 @@ const session = require('express-session');
 const db = require('./db.js');
 const crypto = require('crypto');
 const { UserRedirects } = require('./constants.js');
-const isProduction = require('./nodeenv');
+
+
+const isProduction = process.env.NODE_ENV === 'production';
+
 
 // const port = process.env.PORT || 3000
 
@@ -16,9 +19,7 @@ function generateRandomSecret(length = 32) {
 }
 
 //routers
-const user = require('./routes/user');
-const pos = require('./routes/pos');
-const mgr = require('./routes/mgr');
+const volunteer = require('./routes/volunteer');
 
 console.log('Environment:', isProduction);
 const app = express();
@@ -29,10 +30,10 @@ const root = __dirname;
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-// const randomSecret = generateRandomSecret(8);
+const secret = generateRandomSecret(8);
 
 const sessionConfig = {
-  secret: 'session123', // Use the randomly generated secret key
+  secret, // Use the randomly generated secret key
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -48,75 +49,25 @@ app.use(express.urlencoded({ extended: false }));
 // {fallthrough: isProduction, index: false}
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/profile', isUser);
-app.use('/profile', user);
-
-app.use('/pos', isPointOfSales);
-app.use('/mgr', isManager);
-
-app.use('/pos', pos);
-app.use('/mgr', mgr);
+app.use('/volunteer', volunteer);
 
 
 app.get('/', function(req, res, next) {
-  res.sendFile('./public/carousel.html', {root})
+  res.render('profile/phome');
 });
 
 app.get('/test', function(req, res, next) {
-  res.sendFile('./public/pricing.html', {root})
-});
-
-app.get('/events', async function(req, res, next) {
-  const { wasSuccess, payload } = await db.getEvents(false, true);
-  if (!wasSuccess)
-      console.error('Unable to retrieve events!');
-
-  res.render('home/home-events', {events: payload});
+  // res.sendFile('./public/pricing.html', {root})
 });
 
 //login endpoint
 app.get('/login', function(req, res, next) {
-  if (req.session.user && req.session.user.isLoggedIn) {
-    res.redirect('/profile/')
-  } else {
-    res.sendFile('./public/connect.html', {root: __dirname});
-  }
 });
 
 app.use(function(err, req, res, next) {
   res.status(err.status || 500).send('Error: ' + err.message);
 });
 
-app.post('/login', async function(req, res, next) {
-    const email = req.body.email;
-    const password = req.body.password;
-
-    const { loggedIn, userNo, privilege, fname, lname } = await db.loginUser(email, password);
-
-    if (loggedIn) {
-      // console.log('app.js login success!')
-      req.session.user = {
-        isLoggedIn: true,
-        userNo,
-        privilege,
-        email,
-        fname,
-        lname,
-        alertMsg: '',
-        alertType: 'success',
-        postData: { hasData: false },
-
-      }
-      req.session.save(function(err) {
-        res.redirect('/' + UserRedirects[privilege] + '/');
-      });
-      console.log('User logged in');
-      
-    } else {
-      // console.log('app.js login fail!')
-      res.redirect('/login')
-    }
-});
 
 app.post('/signup', async function(req, res, next) {
   const { fname, lname, email, password} = req.body;
@@ -149,43 +100,8 @@ app.post('/signup', async function(req, res, next) {
 });
 
 app.get('/logout', async function(req, res, next) {
-  req.session.destroy(() => {
-      res.redirect('/');
-  });
+  req.session.destroy(() =>   res.redirect('/'));
 });
-
-
-
-//authenticate as user
-function isUser(req, res, next) {
-  // console.log(req.session.user);
-  if (req.session.user && req.session.user.isLoggedIn && req.session.user.privilege === 0) {
-    // console.log('Called isUser middleware');
-      next();
-  } else {
-    // console.log('failed isUser middleware');
-    // res.status(500).send('failed user login middeware');
-      res.redirect('/login');
-  }
-}
-
-//authenticate as point of sales
-function isPointOfSales(req, res, next) {
-  if (req.session.user && req.session.user.isLoggedIn && req.session.user.privilege === 4) {
-      next();
-  } else {
-      res.redirect('/login');
-  }
-}
-
-//authenticate as senior manager
-function isManager(req, res, next) {
-  if (req.session.user && req.session.user.isLoggedIn && req.session.user.privilege === 17) {
-      next();
-  } else {
-      res.redirect('/login');
-  }
-}
 
 // app.listen(port, () => {
 //   console.log(`site at http://localhost:${port}`)

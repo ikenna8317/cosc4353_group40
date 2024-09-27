@@ -1,0 +1,13 @@
+extends bare.pug 
+
+block title 
+    title Profile 
+
+block content 
+    .container-fluid.d-flex.flex-column.h-100
+        include navbar.pug
+        .row.flex-grow-1
+            //- include sidebar.pug
+            .col.col-md-10.ps-5.pt-5
+                block main-grid
+                    p main page

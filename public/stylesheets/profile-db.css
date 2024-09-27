@@ -16,6 +16,24 @@
     color: #474747;
 }
 
+a.option-box {
+    display: block;
+    text-decoration: none;
+    background-color: #D9D9D9;
+    width: 340px;
+    padding: .7rem;
+}
+
+li.filter-item.selected {
+    background-color: #3F74FB;
+    color: white;
+    border: none;
+}
+
+li.filter-item {
+    border: 1px solid black;
+}
+
 .menu-item {
     /* border: 1px solid black; */
     margin-bottom: 1.8rem;
